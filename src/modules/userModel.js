@@ -11,6 +11,8 @@ const userSchema = new Schema({
   email: {
     type: String,
     require: true,
+    unique: true,
+    lowercase: true,
     trim: true,
     validator: validator.isEmail,
   },
@@ -29,7 +31,10 @@ const userSchema = new Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
-  passwordChangedAt: Date,
+  passwordChangedAt: {
+    type: Date,
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {

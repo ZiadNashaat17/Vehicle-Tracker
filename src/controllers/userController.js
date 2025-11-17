@@ -11,6 +11,7 @@ const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
   user.password = undefined;
+  user.passwordChangedAt = undefined;
 
   res.status(statusCode).json({
     status: 'success',
@@ -19,11 +20,11 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
-export const register = async (req, res, next) => {
+export const register = catchAsync(async (req, res, next) => {
   const newUser = await User.create(req.body);
 
   createSendToken(newUser, 201, res);
-};
+});
 
 export const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;

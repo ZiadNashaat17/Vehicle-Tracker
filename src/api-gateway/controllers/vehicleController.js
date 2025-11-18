@@ -3,6 +3,7 @@ import AppError from '../util/appError.js';
 import catchAsync from '../util/catchAsync.js';
 
 export const addNewVehicle = catchAsync(async (req, res, next) => {
+  req.body.user = req.user._id;
   const newVehicle = await Vehicle.create(req.body);
 
   res.status(201).json({
@@ -12,7 +13,7 @@ export const addNewVehicle = catchAsync(async (req, res, next) => {
 });
 
 export const getVehicle = catchAsync(async (req, res, next) => {
-  const vehicle = await Vehicle.findOne({ _id: req.params.id });
+  const vehicle = await Vehicle.findOne({ plateNumber: req.params.plateNumber }).populate('user');
 
   if (!vehicle) {
     return next(new AppError('No vehicle found with this id!!', 404));
@@ -25,7 +26,7 @@ export const getVehicle = catchAsync(async (req, res, next) => {
 });
 
 export const getAllVehicles = catchAsync(async (req, res, next) => {
-  const vehicles = await Vehicle.find();
+  const vehicles = await Vehicle.find({ user: req.user._id }).populate('user'); //get all vehicles belong to certain user
 
   res.status(200).json({
     status: 'success',
@@ -35,13 +36,13 @@ export const getAllVehicles = catchAsync(async (req, res, next) => {
 });
 
 export const removeVehicle = catchAsync(async (req, res, next) => {
-  const vehicle = await Vehicle.findOne({ _id: req.params.id });
+  const vehicle = await Vehicle.findOne({ plateNumber: req.params.plateNumber });
 
   if (!vehicle) {
     return next(new AppError('No vehicle found with this id!', 404));
   }
 
-  await Vehicle.findOneAndDelete({ _id: req.params.id });
+  await Vehicle.findOneAndDelete({ plateNumber: req.params.plateNumber });
 
   res.status(204).json({
     status: 'success',

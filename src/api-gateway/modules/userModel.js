@@ -35,6 +35,11 @@ const userSchema = new Schema({
     type: Date,
     select: false,
   },
+  passwordResetToken: String,
+  passwordTokenExpires: Date,
+  isVerified: { type: Boolean, default: false },
+  emailVerificationToken: String,
+  emailTokenExpires: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -65,6 +70,29 @@ userSchema.methods.passwordChangedAfter = function (JWTtimstamp) {
   }
 
   return false;
+};
+
+userSchema.methods.generateResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  console.log({ resetToken }, this.passwordResetToken);
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
+
+userSchema.methods.generateVerificationToken = function () {
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+
+  this.emailVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+  console.log({ verificationToken }, this.emailVerificationToken);
+
+  this.emailTokenExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = model('User', userSchema);

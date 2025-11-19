@@ -1,8 +1,8 @@
 import { Schema, model } from 'mongoose';
 
 const recordSchema = new Schema({
-  vehicle: {
-    type: Schema.Types.ObjectId,
+  vehicleId: {
+    type: String,
     ref: 'Vehicle',
     required: true,
   },

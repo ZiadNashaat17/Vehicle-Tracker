@@ -6,10 +6,10 @@ import authenticate from '../services/authenticate.js';
 const router = Router();
 
 router.post('/register', authController.register);
-router.get('/verify-email/:verificationToken', authController.verifyEmail);
+router.get('/verify-email/:verifyToken', authController.verifyEmail);
 router.post('/login', authController.login);
-router.post('/frogot-password', authController.forgotPassword);
-router.get('/reset-password/:resetToken', authController.resetPassword);
+router.post('/forgot-password', authController.forgotPassword);
+router.patch('/reset-password/:resetToken', authController.resetPassword);
 router.patch('/reactivate-user', authController.reactivateuser);
 
 router.use(authenticate);

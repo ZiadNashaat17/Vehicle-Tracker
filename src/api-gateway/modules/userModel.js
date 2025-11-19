@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
 import validator from 'validator';
 import { hash, compare } from 'bcrypt';
+import crypto from 'crypto';
 
 const userSchema = new Schema({
   name: {
@@ -36,7 +37,7 @@ const userSchema = new Schema({
     select: false,
   },
   passwordResetToken: String,
-  passwordTokenExpires: Date,
+  passwordResetExpires: Date,
   isVerified: { type: Boolean, default: false },
   emailVerificationToken: String,
   emailTokenExpires: Date,
@@ -76,7 +77,7 @@ userSchema.methods.generateResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
   this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  console.log({ resetToken }, this.passwordResetToken);
+  // console.log({ resetToken }, this.passwordResetToken);
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
@@ -88,11 +89,11 @@ userSchema.methods.generateVerificationToken = function () {
 
   this.emailVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
 
-  console.log({ verificationToken }, this.emailVerificationToken);
+  // console.log({ verificationToken }, this.emailVerificationToken);
 
   this.emailTokenExpires = Date.now() + 10 * 60 * 1000;
 
-  return resetToken;
+  return verificationToken;
 };
 
 const User = model('User', userSchema);

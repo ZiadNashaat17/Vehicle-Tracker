@@ -29,6 +29,12 @@ export default catchAsync(async (req, res, next) => {
     );
   }
 
+  if (!currentUser.isVerified) {
+    return next(
+      new AppError('Email is not verified! Please verify your email and try again.', 401)
+    );
+  }
+
   req.user = currentUser;
   next();
 });

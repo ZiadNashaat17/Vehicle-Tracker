@@ -3,6 +3,8 @@ import { connect } from 'mongoose';
 import app from './app.js';
 import { connectRabbitMQ } from './src/publisher/services/rabbitMQ.js';
 import consume from './src/consumer/services/consume.js';
+import { initRedisPublisher } from './src/consumer/services/redisChannelPublish.js';
+import { initRedisSubscriber } from './src/api-gateway/services/redisChannelSubscribe.js';
 
 config({ path: './config.env' });
 
@@ -16,6 +18,8 @@ const startServer = async () => {
     console.log('DB connected successfully.');
 
     await connectRabbitMQ();
+    await initRedisPublisher();
+    await initRedisSubscriber();
 
     app.listen(PORT, err => {
       console.log(`App listening on port: ${PORT}`);

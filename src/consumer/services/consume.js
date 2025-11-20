@@ -2,6 +2,7 @@ import amqp from 'amqplib';
 import catchAsync from '../../util/catchAsync.js';
 import Record from '../models/recordModel.js';
 import { cacheLatestRecord } from './cache.js';
+import { publishRecord } from './redisChannelPublish.js';
 
 export default catchAsync(async () => {
   try {
@@ -18,10 +19,12 @@ export default catchAsync(async () => {
     channel.consume('vehicle-tracking', async message => {
       try {
         const input = JSON.parse(message.content.toString());
-        console.log(`Received record: ${JSON.stringify(input)}`);
+        console.log(`Consumer received record: ${JSON.stringify(input)}`);
 
         const record = await Record.create(input);
         cacheLatestRecord(input);
+
+        await publishRecord(record);
 
         if (record) {
           channel.ack(message);

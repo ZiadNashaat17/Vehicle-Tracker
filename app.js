@@ -8,8 +8,8 @@ import rateLimit from 'express-rate-limit';
 import globalErrorHandler from './src/api-gateway/controllers/errorController.js';
 import vehicleRouter from './src/api-gateway/routes/vehicleRoutes.js';
 import userRouter from './src/api-gateway/routes/userRoutes.js';
-import trackRouter from './src/consumer/trackRoutes.js';
-import publisherRouter from './src/publisher/publisherRoutes.js';
+import publisherRouter from './src/publisher/routes/publisherRoutes.js';
+import deviceRouter from './src/consumer/routes/deviceRoutes.js';
 
 const app = express();
 
@@ -28,8 +28,8 @@ app.use(morgan('dev'));
 
 app.use('/api/v1/vehicles', vehicleRouter);
 app.use('/api/v1/user', userRouter);
-app.use('/api/v1/track', trackRouter);
 app.use('/api/v1/publisher', publisherRouter);
+app.use('/api/v1/device', deviceRouter);
 
 app.use(globalErrorHandler);
 

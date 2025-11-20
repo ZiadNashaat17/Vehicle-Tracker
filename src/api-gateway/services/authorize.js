@@ -1,3 +1,5 @@
+import AppError from '../util/appError.js';
+
 export default (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

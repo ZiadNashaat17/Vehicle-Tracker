@@ -1,9 +1,9 @@
 import { Schema, model } from 'mongoose';
 
 const recordSchema = new Schema({
-  vehicleId: {
-    type: String,
-    ref: 'Vehicle',
+  deviceId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Device',
     required: true,
   },
   lng: {

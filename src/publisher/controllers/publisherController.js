@@ -1,9 +1,9 @@
 import Joi from 'joi';
-import { publishRecord } from './rabbitMQ.js';
-import catchAsync from '../api-gateway/util/catchAsync.js';
+import { publishRecord } from '../services/rabbitMQ.js';
+import catchAsync from '../../api-gateway/util/catchAsync.js';
 
 const recordSchema = Joi.object({
-  vehicleId: Joi.string().required(),
+  deviceId: Joi.string().required(),
   lat: Joi.number().min(-90).max(90).required(),
   lng: Joi.number().min(-180).max(180).required(),
   speed: Joi.number().min(0).required(),

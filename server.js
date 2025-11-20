@@ -1,8 +1,8 @@
 import { config } from 'dotenv';
 import { connect } from 'mongoose';
 import app from './app.js';
-import { connectRabbitMQ } from './src/publisher/rabbitMQ.js';
-import consume from './src/consumer/consume.js';
+import { connectRabbitMQ } from './src/publisher/services/rabbitMQ.js';
+import consume from './src/consumer/services/consume.js';
 
 config({ path: './config.env' });
 

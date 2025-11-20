@@ -4,6 +4,12 @@ const vehicleSchema = new Schema({
   brand: { type: String, required: true },
   model: { type: String, required: true },
   year: { type: Number, required: true },
+  deviceId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Device',
+    required: true,
+    unique: true,
+  },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',

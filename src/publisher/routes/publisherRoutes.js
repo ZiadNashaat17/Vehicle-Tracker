@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { track, publishRecordHandler } from './publisherController.js';
+import { track, publishRecordHandler } from '../controllers/publisherController.js';
 
 const router = Router();
 

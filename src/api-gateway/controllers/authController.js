@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-import User from '../modules/userModel.js';
-import AppError from '../util/appError.js';
-import catchAsync from '../util/catchAsync.js';
+import User from '../models/userModel.js';
+import AppError from '../../util/appError.js';
+import catchAsync from '../../util/catchAsync.js';
 import isEmail from 'validator/lib/isEmail.js';
-import sendEmail from '../util/email.js';
+import sendEmail from '../../util/email.js';
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });

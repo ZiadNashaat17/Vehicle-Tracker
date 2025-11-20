@@ -1,7 +1,7 @@
-import { updateDeviceVehicle } from '../../consumer/controllers/deviceController.js';
-import Vehicle from '../modules/vehicleModel.js';
-import AppError from '../util/appError.js';
-import catchAsync from '../util/catchAsync.js';
+import { updateDeviceVehicle } from './deviceController.js';
+import Vehicle from '../models/vehicleModel.js';
+import AppError from '../../util/appError.js';
+import catchAsync from '../../util/catchAsync.js';
 
 export const addNewVehicle = catchAsync(async (req, res, next) => {
   req.body.user = req.user._id;

@@ -1,5 +1,5 @@
 import amqp from 'amqplib';
-import catchAsync from '../../api-gateway/util/catchAsync.js';
+import catchAsync from '../../util/catchAsync.js';
 import Record from '../models/recordModel.js';
 
 export default catchAsync(async () => {

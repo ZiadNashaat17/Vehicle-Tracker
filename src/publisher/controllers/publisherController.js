@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { publishRecord } from '../services/rabbitMQ.js';
-import catchAsync from '../../api-gateway/util/catchAsync.js';
+import catchAsync from '../../util/catchAsync.js';
 
 const recordSchema = Joi.object({
   deviceId: Joi.string().required(),

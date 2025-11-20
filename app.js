@@ -5,11 +5,11 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
 
-import globalErrorHandler from './src/api-gateway/controllers/errorController.js';
+import globalErrorHandler from './src/services/errorController.js';
 import vehicleRouter from './src/api-gateway/routes/vehicleRoutes.js';
 import userRouter from './src/api-gateway/routes/userRoutes.js';
 import publisherRouter from './src/publisher/routes/publisherRoutes.js';
-import deviceRouter from './src/consumer/routes/deviceRoutes.js';
+import deviceRouter from './src/api-gateway/routes/deviceRoutes.js';
 
 const app = express();
 

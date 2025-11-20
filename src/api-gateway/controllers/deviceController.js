@@ -1,7 +1,6 @@
-import Record from '../models/deviceModel.js';
-import catchAsync from '../../api-gateway/util/catchAsync.js';
+import catchAsync from '../../util/catchAsync.js';
 import Device from '../models/deviceModel.js';
-import AppError from '../../api-gateway/util/appError.js';
+import AppError from '../../util/appError.js';
 
 export const createDevice = catchAsync(async (req, res, next) => {
   req.body.user = req.user._id;

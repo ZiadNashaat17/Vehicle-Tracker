@@ -6,8 +6,8 @@ import {
   getDevice,
   updateDevice,
 } from '../controllers/deviceController.js';
-import authenticate from '../../api-gateway/services/authenticate.js';
-import authorize from '../../api-gateway/services/authorize.js';
+import authenticate from '../../services/authenticate.js';
+import authorize from '../../services/authorize.js';
 
 const router = Router();
 

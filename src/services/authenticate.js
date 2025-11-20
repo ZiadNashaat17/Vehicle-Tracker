@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import AppError from '../util/appError.js';
 import catchAsync from '../util/catchAsync.js';
-import User from '../modules/userModel.js';
+import User from '../api-gateway/models/userModel.js';
 
 export default catchAsync(async (req, res, next) => {
   let token;

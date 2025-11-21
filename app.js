@@ -1,14 +1,14 @@
 import express from 'express';
 import morgan from 'morgan';
 // import hpp from 'hpp';
-import helmet from 'helmet';
-import mongoSanitize from 'express-mongo-sanitize';
-import rateLimit from 'express-rate-limit';
+// import helmet from 'helmet';
+// import mongoSanitize from 'express-mongo-sanitize';
+// import rateLimit from 'express-rate-limit';
 
 import globalErrorHandler from './src/services/errorController.js';
 import vehicleRouter from './src/api-gateway/routes/vehicleRoutes.js';
 import userRouter from './src/api-gateway/routes/userRoutes.js';
-import publisherRouter from './src/publisher/routes/publisherRoutes.js';
+import trackRoutes from './src/publisher/routes/trackRoutes.js';
 import deviceRouter from './src/api-gateway/routes/deviceRoutes.js';
 
 const app = express();
@@ -28,7 +28,7 @@ app.use(morgan('dev'));
 
 app.use('/api/v1/vehicles', vehicleRouter);
 app.use('/api/v1/user', userRouter);
-app.use('/api/v1/publisher', publisherRouter);
+app.use('/api/v1/track', trackRoutes);
 app.use('/api/v1/device', deviceRouter);
 
 app.use(globalErrorHandler);

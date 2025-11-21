@@ -1,8 +1,8 @@
 import { config } from 'dotenv';
 import { connect } from 'mongoose';
 import app from './app.js';
-import { connectRabbitMQ } from './src/publisher/services/rabbitMQ.js';
-import consume from './src/consumer/services/consume.js';
+import { connectRabbitMQ } from './src/publisher/services/publishToRabbitMQ.js';
+import consume from './src/consumer/services/consumeRabbitMQ.js';
 import { initRedisPublisher } from './src/consumer/services/redisChannelPublish.js';
 import { initRedisSubscriber } from './src/api-gateway/services/redisChannelSubscribe.js';
 

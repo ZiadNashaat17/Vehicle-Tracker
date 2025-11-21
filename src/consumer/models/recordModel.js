@@ -9,10 +9,14 @@ const recordSchema = new Schema({
   lng: {
     type: Number,
     required: true,
+    min: -180,
+    max: 180,
   },
   lat: {
     type: Number,
     required: true,
+    min: -90,
+    max: 90,
   },
   speed: { type: Number, required: true },
   timestamp: { type: Date, default: Date.now() },

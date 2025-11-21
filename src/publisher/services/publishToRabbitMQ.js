@@ -27,9 +27,9 @@ export const publishRecord = catchAsync(async record => {
 
     const message = JSON.stringify(record);
 
-    channel.assertQueue('vehicle-tracking', Buffer.from(message), { persistent: true });
+    channel.sendToQueue('vehicle-tracking', Buffer.from(message), { persistent: true });
 
-    console.log('Record published to queue');
+    console.log('Record published to queue: ', message);
   } catch (error) {
     console.error('Error publishing to RabbitMQ: ', error);
 

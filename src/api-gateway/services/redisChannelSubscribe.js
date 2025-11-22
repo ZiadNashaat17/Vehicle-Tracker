@@ -9,12 +9,16 @@ export async function initRedisSubscriber() {
 
   await subClient.connect();
 
+  let record;
+
   // Listen for new records from consumer service
   await subClient.subscribe('newRecord', message => {
-    const record = JSON.parse(message);
+    record = JSON.parse(message);
     console.log('API-Gateway received record from consumer:', record);
     // Process the record here (e.g., store, trigger notifications, etc.)
   });
 
   console.log('Redis subscriber initialized - listening for records from consumer');
+
+  return record;
 }

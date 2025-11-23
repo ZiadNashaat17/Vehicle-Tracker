@@ -189,7 +189,7 @@ Before you begin, ensure you have the following installed:
 3. **Start with Docker Compose**
 
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 
 4. **View logs**
@@ -206,7 +206,7 @@ Create a `config.env` file in the root directory with the following variables:
 NODE_ENV=development
 PORT=3000
 
-# Database
+# Database - Update it with your DB URL
 DATABASE=mongodb://localhost:27017/vehicle-tracker
 
 # JWT
@@ -220,12 +220,10 @@ REDIS_PORT=6379
 # RabbitMQ
 RABBITMQ_URL=amqp://localhost
 
-# SendGrid Email
+# SendGrid Email - Update it with your data
 SENDGRID_API_KEY=your-sendgrid-api-key
-EMAIL_FROM=noreply@vehicletracker.com
+EMAIL_FROM=yoursendgridemail@example.com
 
-# Frontend URL (for email verification links)
-FRONTEND_URL=http://localhost:3000
 ```
 
 ## 💻 Usage
@@ -450,22 +448,11 @@ Contributions are welcome! Please follow these steps:
 - Update documentation as needed
 - Ensure all tests pass before submitting PR
 
-## 📝 License
-
-This project is licensed under the ISC License.
-
 ## 👤 Author
 
 **Ziad Nashaat**
 
 - GitHub: [@ZiadNashaat17](https://github.com/ZiadNashaat17)
-
-## 🙏 Acknowledgments
-
-- Express.js team for the excellent framework
-- Socket.IO for real-time capabilities
-- RabbitMQ and Redis communities for robust messaging solutions
-- MongoDB for flexible data storage
 
 ---
 

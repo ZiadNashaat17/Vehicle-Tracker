@@ -13,6 +13,7 @@ import trackRoutes from './src/publisher/routes/trackRoutes.js';
 import deviceRouter from './src/api-gateway/routes/deviceRoutes.js';
 import liveRouter from './src/api-gateway/routes/liveRoutes.js';
 import historyRouter from './src/api-gateway/routes/historyRoutes.js';
+import geofenceRouter from './src/api-gateway/routes/geofenceRoutes.js';
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/v1/track', trackRoutes);
 app.use('/api/v1/device', deviceRouter);
 app.use('/api/v1/live', liveRouter);
 app.use('/api/v1/history', historyRouter);
+app.use('/api/v1/geofence', geofenceRouter);
 
 app.use(globalErrorHandler);
 

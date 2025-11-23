@@ -12,6 +12,7 @@ import userRouter from './src/api-gateway/routes/userRoutes.js';
 import trackRoutes from './src/publisher/routes/trackRoutes.js';
 import deviceRouter from './src/api-gateway/routes/deviceRoutes.js';
 import liveRouter from './src/api-gateway/routes/liveRoutes.js';
+import historyRouter from './src/api-gateway/routes/historyRoutes.js';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/v1/user', userRouter);
 app.use('/api/v1/track', trackRoutes);
 app.use('/api/v1/device', deviceRouter);
 app.use('/api/v1/live', liveRouter);
+app.use('/api/v1/history', historyRouter);
 
 app.use(globalErrorHandler);
 

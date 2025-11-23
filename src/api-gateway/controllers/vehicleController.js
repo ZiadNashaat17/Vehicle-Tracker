@@ -69,3 +69,20 @@ export const removeVehicle = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+export const updateVehicleLastLocation = async record => {
+  const vehicle = await Vehicle.findOne({ deviceId: record.deviceId });
+
+  if (!vehicle) {
+    console.error(`Vehicle not found for deviceId: ${record.deviceId}`);
+    return;
+  }
+
+  vehicle.lastLocation = {
+    type: 'Point',
+    coordinates: [record.lng, record.lat]
+  };
+
+  await vehicle.save();
+  console.log(`Updated vehicle ${vehicle.plateNumber} location to [${record.lng}, ${record.lat}]`);
+};

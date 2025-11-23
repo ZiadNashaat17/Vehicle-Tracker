@@ -44,7 +44,7 @@ The system follows a microservices architecture with IoT devices sending data th
 ```
 ┌──────────────┐
 │ IoT Devices  │
-│ (GPS Trackers)│
+│(GPS Trackers)│
 └──────┬───────┘
        │ HTTP POST
        ▼
@@ -52,8 +52,8 @@ The system follows a microservices architecture with IoT devices sending data th
 │  Publisher  │────────▶│   RabbitMQ   │────────▶│  Consumer   │
 │  (Validate) │         │ Message Queue│         │  (Process)  │
 └─────────────┘         └──────────────┘         └──────┬──────┘
-                                                         │
-                                                         ▼
+                                                        │
+                                                        ▼
                                                    ┌──────────┐
                                                    │  Redis   │
                                                    │ Pub/Sub  │
@@ -62,9 +62,9 @@ The system follows a microservices architecture with IoT devices sending data th
                                                         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      API Gateway                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │  │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │     │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼

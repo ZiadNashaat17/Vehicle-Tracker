@@ -245,6 +245,20 @@ Use the provided `test.html` or tools like Postman to test API endpoints.
 
 ## 📚 API Documentation
 
+For complete API documentation with examples and detailed request/response formats, visit:
+
+**[📖 Postman API Documentation](https://documenter.getpostman.com/view/29231674/2sB3dHVsya)**
+
+The documentation includes:
+
+- All available endpoints with descriptions
+- Request/response examples
+- Authentication flows
+- Query parameters and filters
+- Error responses
+
+### Quick Reference
+
 ### Authentication
 
 #### Register User

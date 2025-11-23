@@ -1,5 +1,7 @@
 import { createClient } from 'redis';
 
+import { updateVehicleLastLocation } from '../controllers/vehicleController.js';
+
 let subClient;
 
 export async function initRedisSubscriber(io) {
@@ -9,9 +11,11 @@ export async function initRedisSubscriber(io) {
 
   await subClient.connect();
 
-  await subClient.subscribe('newRecord', message => {
+  await subClient.subscribe('newRecord', async message => {
     const record = JSON.parse(message);
     console.log('API-Gateway received record from consumer:', record);
+
+    await updateVehicleLastLocation(record);
 
     if (io && record.deviceId) {
       const room = `device:${record.deviceId}`;

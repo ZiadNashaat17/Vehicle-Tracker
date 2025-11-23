@@ -39,41 +39,49 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 
 ## 🏗 Architecture
 
-The system follows a microservices architecture with three main components:
+The system follows a microservices architecture with IoT devices sending data through a message queue:
 
 ```
+┌──────────────┐
+│ IoT Devices  │
+│ (GPS Trackers)│
+└──────┬───────┘
+       │ HTTP POST
+       ▼
 ┌─────────────┐         ┌──────────────┐         ┌─────────────┐
 │  Publisher  │────────▶│   RabbitMQ   │────────▶│  Consumer   │
-└─────────────┘         └──────────────┘         └─────────────┘
-      │                                                  │
-      │                                                  ▼
-      │                                            ┌──────────┐
-      │                                            │  Redis   │
-      │                                            │ Pub/Sub  │
-      │                                            └──────────┘
-      │                                                  │
-      ▼                                                  ▼
+│  (Validate) │         │ Message Queue│         │  (Process)  │
+└─────────────┘         └──────────────┘         └──────┬──────┘
+                                                         │
+                                                         ▼
+                                                   ┌──────────┐
+                                                   │  Redis   │
+                                                   │ Pub/Sub  │
+                                                   └────┬─────┘
+                                                        │
+                                                        ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      API Gateway                            │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
 │  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │  │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   MongoDB    │
-                    └──────────────┘
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+                        ┌──────────────┐
+                        │   MongoDB    │
+                        └──────────────┘
 ```
 
 ### Component Responsibilities
 
-- **Publisher**: Receives GPS tracking data, validates it, and publishes to RabbitMQ
+- **IoT Devices**: GPS tracking devices that send location data via HTTP
+- **Publisher**: Receives GPS tracking data from IoT devices, validates it, and publishes to RabbitMQ
+- **RabbitMQ**: Message broker for decoupling services and ensuring reliable message delivery
 - **Consumer**: Processes messages from RabbitMQ, stores in MongoDB, and publishes to Redis
-- **API Gateway**: Handles HTTP requests, authentication, and WebSocket connections
-- **RabbitMQ**: Message broker for decoupling services
-- **Redis**: Caching and pub/sub for real-time updates
-- **MongoDB**: Persistent data storage
+- **Redis**: Pub/sub messaging for real-time updates and caching layer for performance
+- **API Gateway**: Handles HTTP requests, authentication, WebSocket connections, and serves clients
+- **MongoDB**: Persistent data storage for vehicles, users, devices, and tracking records
 
 ## 🛠 Tech Stack
 

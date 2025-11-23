@@ -4,12 +4,12 @@ import catchAsync from '../../util/catchAsync.js';
 
 const client = createClient({ url: process.env.REDIS_URL });
 
-client.on('error', err => console.log('Redis Client Error', err));
-client.on('connect', () => console.log('Redis Client Connected'));
+client.on('error', err => console.log('API-Gateway Redis Client Error', err));
+client.on('connect', () => console.log('API-Gateway Redis Client Connected'));
 
 await client.connect();
 
-export const getCachedRecord = catchAsync(async deviceId => {
+export const getCachedRecord = async deviceId => {
   const key = `device:${deviceId}`;
 
   const record = await client.get(key);
@@ -19,4 +19,4 @@ export const getCachedRecord = catchAsync(async deviceId => {
   }
 
   return JSON.parse(record);
-});
+};

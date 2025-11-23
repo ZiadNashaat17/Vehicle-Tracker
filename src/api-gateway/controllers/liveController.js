@@ -3,7 +3,6 @@ import catchAsync from '../../util/catchAsync.js';
 import Device from '../models/deviceModel.js';
 import Vehicle from '../models/vehicleModel.js';
 import { getCachedRecord } from '../services/redisCache.js';
-import { initializeSocket } from '../services/websocket.js';
 
 export const updateLive = catchAsync(async (req, res, next) => {
   const { plateNumber } = req.body;
@@ -21,19 +20,16 @@ export const updateLive = catchAsync(async (req, res, next) => {
 
   const cachedRecord = await getCachedRecord(device._id);
 
-  console.log(device._id);
-
   if (!cachedRecord) {
     return next(new AppError('No live data available for this device!', 404));
   }
 
-  const io = initializeSocket();
-
-  io.emit('vehicle:live', cachedRecord);
-
   res.status(200).json({
     success: true,
     message: 'Vehicle tracking is live',
-    data: { cachedRecord },
+    data: {
+      deviceId: device._id,
+      initialData: cachedRecord,
+    },
   });
 });

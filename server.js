@@ -6,7 +6,7 @@ import { connectRabbitMQ } from './src/publisher/services/publishToRabbitMQ.js';
 import consumeRabbitMQ from './src/consumer/services/consumeRabbitMQ.js';
 import { initRedisPublisher } from './src/consumer/services/redisChannelPublish.js';
 import { initRedisSubscriber } from './src/api-gateway/services/redisChannelSubscribe.js';
-// import { initializeSocket } from './src/api-gateway/services/websocket.js';
+import { initializeSocket } from './src/api-gateway/services/websocket.js';
 
 config({ path: './config.env' });
 
@@ -23,13 +23,15 @@ const startServer = async () => {
 
     await connectRabbitMQ();
     await initRedisPublisher();
-    await initRedisSubscriber();
+
+    const io = initializeSocket(httpServer);
+
+    await initRedisSubscriber(io);
 
     httpServer.listen(PORT, err => {
       console.log(`Server listening on port: ${PORT}`);
     });
 
-    // initializeSocket();
     await consumeRabbitMQ();
   } catch (error) {
     console.error('Server startup error:', error);
@@ -38,5 +40,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-export default httpServer;

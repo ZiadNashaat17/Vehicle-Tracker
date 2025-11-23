@@ -4,6 +4,7 @@ import morgan from 'morgan';
 // import helmet from 'helmet';
 // import mongoSanitize from 'express-mongo-sanitize';
 // import rateLimit from 'express-rate-limit';
+import cors from 'cors';
 
 import globalErrorHandler from './src/services/errorController.js';
 import vehicleRouter from './src/api-gateway/routes/vehicleRoutes.js';
@@ -14,6 +15,7 @@ import liveRouter from './src/api-gateway/routes/liveRoutes.js';
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 

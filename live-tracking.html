@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vehicle Live Tracking</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      .section {
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+      }
+      .hidden {
+        display: none;
+      }
+      #status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+      .connected {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .disconnected {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      #records {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-top: 20px;
+        height: 400px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+      }
+      .record {
+        margin: 5px 0;
+        padding: 10px;
+        background-color: white;
+        border-left: 3px solid #007bff;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      button.success {
+        background-color: #28a745;
+      }
+      input {
+        padding: 8px;
+        margin: 5px;
+        width: 300px;
+        display: block;
+      }
+      .user-info {
+        background: white;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      h2 {
+        margin-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚗 Vehicle Live Tracking System</h1>
+
+    <!-- Step 1: Login -->
+    <div id="loginSection" class="section">
+      <h2>Step 1: Login</h2>
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+    </div>
+
+    <!-- Step 2: User Info (hidden initially) -->
+    <div id="userSection" class="section hidden">
+      <h2>Step 2: User Information</h2>
+      <div id="userInfo" class="user-info"></div>
+      <button id="continueBtn">Continue to Tracking</button>
+    </div>
+
+    <!-- Step 3: Vehicle Tracking (hidden initially) -->
+    <div id="trackingSection" class="section hidden">
+      <h2>Step 3: Start Vehicle Tracking</h2>
+      <input type="text" id="plateNumber" placeholder="Enter Vehicle Plate Number" />
+      <button id="startTracking">Start Tracking</button>
+    </div>
+
+    <div id="status" class="disconnected">Status: Not Logged In</div>
+    <div id="deviceInfo"></div>
+
+    <!-- Live Updates (hidden initially) -->
+    <div id="updatesSection" class="hidden">
+      <h2>Live Updates:</h2>
+      <div id="records"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script>
+      const statusDiv = document.getElementById('status');
+      const deviceInfoDiv = document.getElementById('deviceInfo');
+      const recordsDiv = document.getElementById('records');
+
+      // Section elements
+      const loginSection = document.getElementById('loginSection');
+      const userSection = document.getElementById('userSection');
+      const trackingSection = document.getElementById('trackingSection');
+      const updatesSection = document.getElementById('updatesSection');
+
+      // Button elements
+      const loginBtn = document.getElementById('loginBtn');
+      const continueBtn = document.getElementById('continueBtn');
+      const startBtn = document.getElementById('startTracking');
+
+      let socket;
+      let currentDeviceId;
+      let authToken = null;
+      let currentUser = null;
+
+      // Step 1: Login
+      async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+          alert('Please enter email and password');
+          return;
+        }
+
+        try {
+          loginBtn.disabled = true;
+          statusDiv.textContent = 'Logging in...';
+
+          const response = await fetch('http://localhost:3000/api/v1/user/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const result = await response.json();
+          console.log('Login response:', result);
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Login failed');
+          }
+
+          // Save token and user info
+          authToken = result.token;
+          currentUser = result.data.user;
+
+          // Show user info
+          document.getElementById('userInfo').innerHTML = `
+            <p><strong>Name:</strong> ${currentUser.name}</p>
+            <p><strong>Email:</strong> ${currentUser.email}</p>
+            <p><strong>Role:</strong> ${currentUser.role}</p>
+          `;
+
+          statusDiv.textContent = 'Logged in successfully ✓';
+          statusDiv.className = 'success';
+
+          // Show next section
+          loginSection.classList.add('hidden');
+          userSection.classList.remove('hidden');
+        } catch (error) {
+          console.error('Login error:', error);
+          statusDiv.textContent = 'Login failed';
+          statusDiv.className = 'disconnected';
+          alert('Login failed: ' + error.message);
+          loginBtn.disabled = false;
+        }
+      }
+
+      // Step 2: Continue to tracking
+      function continueToTracking() {
+        userSection.classList.add('hidden');
+        trackingSection.classList.remove('hidden');
+        statusDiv.textContent = 'Ready to track vehicle';
+      }
+
+      // Connect to Socket.IO server
+      function connectSocket() {
+        socket = io('http://localhost:3000');
+
+        socket.on('connect', () => {
+          console.log('✓ Connected to WebSocket');
+          statusDiv.textContent = `Status: Connected (Socket ID: ${socket.id})`;
+          statusDiv.className = 'connected';
+        });
+
+        socket.on('disconnect', () => {
+          console.log('✗ Disconnected from WebSocket');
+          statusDiv.textContent = 'Status: Disconnected';
+          statusDiv.className = 'disconnected';
+        });
+
+        socket.on('joined', data => {
+          console.log('✓ Joined device room:', data);
+          deviceInfoDiv.innerHTML = `<strong>Tracking Device:</strong> ${data.deviceId}`;
+        });
+
+        socket.on('vehicle:live', data => {
+          console.log('📍 New record received:', data);
+          addRecord(data);
+        });
+      }
+
+      // Step 3: Start tracking a vehicle
+      async function startTracking() {
+        const plateNumber = document.getElementById('plateNumber').value;
+
+        if (!plateNumber) {
+          alert('Please enter a plate number');
+          return;
+        }
+
+        if (!authToken) {
+          alert('Please login first');
+          return;
+        }
+
+        try {
+          startBtn.disabled = true;
+          statusDiv.textContent = 'Requesting live tracking...';
+          statusDiv.className = 'disconnected';
+
+          console.log('Sending request to:', 'http://localhost:3000/api/v1/live');
+          console.log('With plate number:', plateNumber);
+
+          // Hit the /live endpoint
+          const response = await fetch('http://localhost:3000/api/v1/live', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ plateNumber }),
+          });
+
+          const result = await response.json();
+          console.log('Response:', result);
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Failed to start tracking');
+          }
+
+          console.log('Live endpoint response:', result);
+
+          // Get device ID from response
+          currentDeviceId = result.data.deviceId;
+
+          // Display initial data
+          addRecord(result.data.initialData);
+
+          // Show updates section
+          updatesSection.classList.remove('hidden');
+
+          // Connect to WebSocket if not already connected
+          if (!socket) {
+            connectSocket();
+          }
+
+          // Join the device room
+          socket.emit('join:device-room', currentDeviceId);
+
+          statusDiv.textContent = 'Tracking active - receiving live updates';
+          statusDiv.className = 'connected';
+        } catch (error) {
+          console.error('Error:', error);
+          statusDiv.textContent = 'Error: ' + error.message;
+          statusDiv.className = 'disconnected';
+          alert('Error: ' + error.message + '\n\nCheck console (F12) for details.');
+          startBtn.disabled = false;
+        }
+      }
+
+      function addRecord(record) {
+        const recordEl = document.createElement('div');
+        recordEl.className = 'record';
+        recordEl.innerHTML = `
+          <strong>${new Date().toLocaleTimeString()}</strong><br>
+          <pre>${JSON.stringify(record, null, 2)}</pre>
+        `;
+        recordsDiv.insertBefore(recordEl, recordsDiv.firstChild);
+      }
+
+      // Event listeners
+      loginBtn.addEventListener('click', login);
+      continueBtn.addEventListener('click', continueToTracking);
+      startBtn.addEventListener('click', startTracking);
+    </script>
+  </body>
+</html>

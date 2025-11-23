@@ -3,8 +3,8 @@ import catchAsync from '../../util/catchAsync.js';
 
 const client = redis.createClient({ url: process.env.REDIS_URL });
 
-client.on('error', err => console.log('Redis Client Error', err));
-client.on('connect', () => console.log('Redis Client Connected'));
+client.on('error', err => console.log('Consumer Redis Client Error', err));
+client.on('connect', () => console.log('Consumer Redis Client Connected'));
 
 await client.connect();
 

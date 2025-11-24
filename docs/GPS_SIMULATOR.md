@@ -312,7 +312,7 @@ This matches the expected format for the `/api/v1/track` endpoint.
 
 - `simulate-multiple.js` - GPS simulator script
 - `live-tracking.html` - View simulated vehicles in real-time
-- `test.html` - Test API endpoints
+- `test-socket-connection.html` - Test Socket.io connection
 - `src/publisher/services/validateRecord.js` - GPS data validation logic
 
 ---

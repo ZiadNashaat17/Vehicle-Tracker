@@ -5,7 +5,7 @@ import Vehicle from '../models/vehicleModel.js';
 import { getCachedRecord } from '../services/redisCache.js';
 
 export const updateLive = catchAsync(async (req, res, next) => {
-  const { plateNumber } = req.body;
+  const plateNumber = req.params.plateNumber;
   const vehicle = await Vehicle.findOne({ plateNumber });
 
   if (!vehicle) {

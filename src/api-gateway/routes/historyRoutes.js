@@ -4,6 +4,6 @@ import authenticate from '../../services/authenticate.js';
 
 const router = Router();
 
-router.post('/', authenticate, getVehicleHistory);
+router.post('/:plateNumber', authenticate, getVehicleHistory);
 
 export default router;

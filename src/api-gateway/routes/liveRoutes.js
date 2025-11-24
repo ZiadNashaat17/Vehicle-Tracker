@@ -5,6 +5,6 @@ import authenticate from '../../services/authenticate.js';
 
 const router = Router();
 
-router.post('/', authenticate, updateLive);
+router.post('/:plateNumber', authenticate, updateLive);
 
 export default router;

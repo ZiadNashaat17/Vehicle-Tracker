@@ -6,7 +6,7 @@ import Device from '../models/deviceModel.js';
 import APIFeatures from '../../util/apiFeatures.js';
 
 export const getVehicleHistory = catchAsync(async (req, res, next) => {
-  const { plateNumber } = req.body;
+  const plateNumber = req.params.plateNumber;
 
   if (!plateNumber) {
     return next(new AppError('Please provide a plate number', 400));

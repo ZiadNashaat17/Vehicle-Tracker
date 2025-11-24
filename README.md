@@ -11,6 +11,7 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 - [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Usage](#-usage)
+- [GPS Data Simulator](#-gps-data-simulator)
 - [API Documentation](#-api-documentation)
 - [Project Structure](#-project-structure)
 - [Contributing](#-contributing)
@@ -36,6 +37,7 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 - **Data Validation**: Joi schema validation for GPS records
 - **Security**: Helmet, rate limiting, and CORS protection
 - **Containerization**: Docker and Docker Compose support
+- **GPS Data Simulator**: Built-in script for testing with simulated vehicle data
 
 ## 🏗 Architecture
 
@@ -234,6 +236,28 @@ The server will start on `http://localhost:3000` (or your configured PORT).
 
 ### Testing Real-time Tracking
 
+#### Option 1: Using the GPS Simulator (Recommended)
+
+The easiest way to test the system is using the built-in GPS data simulator:
+
+```bash
+# Make sure the server is running first
+npm start
+
+# In a new terminal, run the simulator
+node simulate-multiple.js
+```
+
+The simulator will:
+- Generate realistic GPS data for multiple vehicles
+- Send data to your API automatically
+- Show live updates in the console
+- Loop through predefined routes continuously
+
+For detailed configuration options, see [GPS Simulator Documentation](docs/GPS_SIMULATOR.md).
+
+#### Option 2: Manual Testing
+
 1. Open `live-tracking.html` in a browser
 2. Connect to the WebSocket server
 3. Send GPS coordinates via the `/api/v1/track` endpoint
@@ -241,7 +265,57 @@ The server will start on `http://localhost:3000` (or your configured PORT).
 
 ### API Testing
 
-Use the provided `test.html` or tools like Postman to test API endpoints.
+Use tools like Postman to test API endpoints.
+
+## 🛰️ GPS Data Simulator
+
+The project includes a built-in GPS data simulator for testing without physical GPS devices.
+
+### Quick Start
+
+```bash
+# Start the simulator with default settings
+node simulate-multiple.js
+```
+
+### Features
+
+- ✅ Simulate single or multiple vehicles
+- ✅ Realistic GPS coordinate movement
+- ✅ Configurable routes and speeds
+- ✅ Automatic looping through waypoints
+- ✅ Speed variations for realism (±7.5 km/h)
+- ✅ Customizable update intervals
+
+### Configuration
+
+Edit `simulate-multiple.js` to customize:
+
+```javascript
+const VEHICLES = [
+  {
+    deviceId: 'your-device-id',
+    route: [
+      { lat: 30.0444, lng: 31.2357 },
+      { lat: 30.05, lng: 31.24 },
+      // Add more waypoints...
+    ],
+    speed: 60, // km/h
+  },
+  // Add more vehicles...
+];
+
+const UPDATE_INTERVAL = 3000; // milliseconds
+```
+
+### Use Cases
+
+- 🧪 **Testing**: Validate real-time tracking features
+- 📊 **Demo**: Showcase the system without hardware
+- ⚡ **Load Testing**: Simulate multiple vehicles simultaneously
+- 🔧 **Development**: Debug and develop new features
+
+📖 **For detailed documentation, see [GPS_SIMULATOR.md](docs/GPS_SIMULATOR.md)**
 
 ## 📚 API Documentation
 
@@ -436,12 +510,15 @@ Vehicle-Tracker/
 │       └── filterObj.js     # Object filtering
 ├── app.js                   # Express app configuration
 ├── server.js               # Server entry point
+├── simulate-multiple.js    # GPS data simulator for testing
+├── docs/
+│   └── GPS_SIMULATOR.md    # GPS simulator documentation
 ├── docker-compose.yml      # Docker services configuration
 ├── Dockerfile             # Container image definition
 ├── package.json          # Dependencies and scripts
 ├── config.env           # Environment variables
 ├── live-tracking.html   # Live tracking demo
-└── test.html           # API testing page
+└── test-socket-connection.html   # Socket.io testing page
 ```
 
 ## 🤝 Contributing

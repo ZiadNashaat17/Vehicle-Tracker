@@ -13,7 +13,7 @@ The GPS simulator generates realistic GPS tracking data and sends it to your Veh
 
 ## 🚀 GPS Simulator
 
-### Vehicle Simulator (`simulate-multiple.js`)
+### Vehicle Simulator (`simulateGPS.js`)
 
 Simulates one or more vehicles with different routes simultaneously.
 
@@ -30,11 +30,11 @@ Simulates one or more vehicles with different routes simultaneously.
 **Usage:**
 
 ```bash
-node simulate-multiple.js
+node simulateGPS.js
 ```
 
 **Configuration:**
-Edit the `VEHICLES` array in `simulate-multiple.js`:
+Edit the `VEHICLES` array in `simulateGPS.js`:
 
 ```javascript
 const VEHICLES = [
@@ -122,7 +122,7 @@ Make sure your Vehicle Tracker system is running:
 1. **Run the simulator:**
 
    ```bash
-   node simulate-multiple.js
+   node simulateGPS.js
    ```
 
 2. **Stop simulation:**
@@ -310,7 +310,7 @@ This matches the expected format for the `/api/v1/track` endpoint.
 
 ## 🔗 Related Files
 
-- `simulate-multiple.js` - GPS simulator script
+- `simulateGPS.js` - GPS simulator script
 - `live-tracking.html` - View simulated vehicles in real-time
 - `test-socket-connection.html` - Test Socket.io connection
 - `src/publisher/services/validateRecord.js` - GPS data validation logic

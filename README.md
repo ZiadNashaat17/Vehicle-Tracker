@@ -15,7 +15,6 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 - [API Documentation](#-api-documentation)
 - [Project Structure](#-project-structure)
 - [Contributing](#-contributing)
-- [License](#-license)
 
 ## ✨ Features
 
@@ -245,10 +244,11 @@ The easiest way to test the system is using the built-in GPS data simulator:
 npm start
 
 # In a new terminal, run the simulator
-node simulate-multiple.js
+node simulateGPS.js
 ```
 
 The simulator will:
+
 - Generate realistic GPS data for multiple vehicles
 - Send data to your API automatically
 - Show live updates in the console
@@ -275,7 +275,7 @@ The project includes a built-in GPS data simulator for testing without physical 
 
 ```bash
 # Start the simulator with default settings
-node simulate-multiple.js
+node simulateGPS.js
 ```
 
 ### Features
@@ -289,7 +289,7 @@ node simulate-multiple.js
 
 ### Configuration
 
-Edit `simulate-multiple.js` to customize:
+Edit `simulateGPS.js` to customize:
 
 ```javascript
 const VEHICLES = [
@@ -510,7 +510,7 @@ Vehicle-Tracker/
 │       └── filterObj.js     # Object filtering
 ├── app.js                   # Express app configuration
 ├── server.js               # Server entry point
-├── simulate-multiple.js    # GPS data simulator for testing
+├── simulateGPS.js    # GPS data simulator for testing
 ├── docs/
 │   └── GPS_SIMULATOR.md    # GPS simulator documentation
 ├── docker-compose.yml      # Docker services configuration

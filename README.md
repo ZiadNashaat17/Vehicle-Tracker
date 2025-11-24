@@ -151,25 +151,29 @@ Before you begin, ensure you have the following installed:
 4. **Start required services**
 
    ```bash
-   # Start MongoDB
-   mongod
 
-   # Start Redis
-   redis-server
-
-   # Start RabbitMQ
-   rabbitmq-server
    ```
+
+# Start Redis
+
+redis-server --daemonize yes
+redis-cli
+
+# Start RabbitMQ
+
+docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4-management
+
+````
 
 5. **Run the application**
 
-   ```bash
-   # Development mode with auto-reload
-   npm run start-dev
+```bash
+# Development mode with auto-reload - Requires nodemon package installed
+npm run start-dev
 
-   # Production mode
-   npm start
-   ```
+# Production mode
+npm start
+````
 
 ### Option 2: Docker Deployment
 
@@ -386,7 +390,7 @@ Content-Type: application/json
 {
   "name": "Vehicle 001",
   "deviceId": "device123",
-  "licensePlate": "ABC-1234"
+  "plateNumber": "ABC-1234"
 }
 ```
 

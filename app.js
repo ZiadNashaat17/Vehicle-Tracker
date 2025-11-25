@@ -30,6 +30,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 // app.use(hpp());
 app.use(helmet());
+app.disable('x-powered-by'); // reduce fingerprinting
 
 app.use('/api/v1/vehicles', vehicleRouter);
 app.use('/api/v1/user', userRouter);

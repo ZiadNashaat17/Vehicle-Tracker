@@ -6,7 +6,7 @@ import Device from '../models/deviceModel.js';
 import APIFeatures from '../../util/apiFeatures.js';
 
 export const getVehicleHistory = catchAsync(async (req, res, next) => {
-  const plateNumber = req.params.plateNumber;
+  const { plateNumber, startDate, endDate } = req.body;
 
   if (!plateNumber) {
     return next(new AppError('Please provide a plate number', 400));
@@ -24,16 +24,34 @@ export const getVehicleHistory = catchAsync(async (req, res, next) => {
     return next(new AppError('You do not have access to this vehicle', 403));
   }
 
-  // Build query with filtering, sorting, and pagination
-  const features = new APIFeatures(Record.find({ deviceId: device._id }), req.query)
-    .filter()
-    .sort()
-    .limit()
-    .paginate();
+  let features;
+  let totalRecords;
+
+  if (startDate && endDate) {
+    features = new APIFeatures(
+      Record.find({ deviceId: device._id, timestamp: { $gte: startDate, $lte: endDate } }),
+      req.query
+    )
+      .filter()
+      .sort()
+      .limit()
+      .paginate();
+
+    totalRecords = await Record.countDocuments({
+      deviceId: device._id,
+      timestamp: { $gte: startDate, $lte: endDate },
+    });
+  } else {
+    features = new APIFeatures(Record.find({ deviceId: device._id }), req.query)
+      .filter()
+      .sort()
+      .limit()
+      .paginate();
+
+    totalRecords = await Record.countDocuments({ deviceId: device._id });
+  }
 
   const records = await features.query;
-
-  const totalRecords = await Record.countDocuments({ deviceId: device._id });
 
   res.status(200).json({
     success: true,

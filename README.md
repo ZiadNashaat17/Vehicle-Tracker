@@ -421,7 +421,7 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "vehicleId": "vehicle123"
+  "plateNumber": "SSS-0000"
 }
 ```
 

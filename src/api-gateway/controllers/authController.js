@@ -6,6 +6,7 @@ import AppError from '../../util/appError.js';
 import catchAsync from '../../util/catchAsync.js';
 import isEmail from 'validator/lib/isEmail.js';
 import sendEmail from '../../util/email.js';
+import filterObj from '../../util/filterObj.js';
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
@@ -115,6 +116,52 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   createSendToken(user, 200, res);
+});
+
+export const updateUser = catchAsync(async (req, res, next) => {
+  const filteredBody = filterObj(req.body, 'name', 'email');
+
+  if (req.body.password) {
+    return next(new AppError('You cannot update password here!', 400));
+  }
+
+  if (filteredBody.email !== undefined) {
+    if (!filteredBody.email || filteredBody.email.trim() === '') {
+      return next(new AppError('Email cannot be empty!', 400));
+    }
+
+    if (!isEmail(filteredBody.email)) {
+      return next(new AppError('Invalid email!', 400));
+    }
+
+    const existingUser = await User.findOne({
+      email: filteredBody.email,
+      _id: { $ne: req.user._id },
+    });
+
+    if (existingUser) {
+      return next(new AppError('Email is already in use by another user', 400));
+    }
+  }
+
+  if (filteredBody.name !== undefined) {
+    if (!filteredBody.name || filteredBody.name.trim() === '') {
+      return next(new AppError('Name cannot be empty!', 400));
+    }
+  }
+
+  const user = await User.findOneAndUpdate({ _id: req.user._id }, filteredBody, {
+    new: true,
+    runValidators: true,
+  }).select('-_id -__v -role');
+
+  res.status(201).json({
+    success: true,
+    message: 'Account updated successfully',
+    data: {
+      updatedUser: user,
+    },
+  });
 });
 
 export const deactivateUser = catchAsync(async (req, res, next) => {

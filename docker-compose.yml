@@ -1,20 +1,20 @@
 version: '3'
 
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: vehicle-tracker-backend
-    ports:
-      - '3000:3000'
-    env_file:
-      - ./config.env
-    networks:
-      - app-network
-    depends_on:
-      - mongo
-      - redis
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: vehicle-tracker-backend
+  #   ports:
+  #     - '3000:3000'
+  #   env_file:
+  #     - ./config.env
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - mongo
+  #     - redis
 
   mongo:
     image: mongo
@@ -33,6 +33,13 @@ services:
       - '6379:6379'
     networks:
       - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
 
 networks:
   app-network:

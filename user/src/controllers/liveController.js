@@ -4,18 +4,25 @@ import Vehicle from '../models/vehicleModel.js';
 import { getCachedRecord } from '../services/redisCache.js';
 
 export const updateLive = async (req, res, next) => {
+  console.log('updateLive controller');
   const { plateNumber } = req.body;
   const vehicle = await Vehicle.findOne({ plateNumber });
 
   if (!vehicle) {
+    console.log('No vehicle');
     return next(new AppError('No vehicle found with this plate number!', 404));
   }
 
-  const device = await Device.findOne({ user: req.user._id, vehicleId: vehicle._id });
+  console.log('vehicle: ', vehicle);
+
+  const device = await Device.findById(vehicle.deviceId);
 
   if (!device) {
+    console.log('No device');
     return next(new AppError('No device found for this vehicle!', 404));
   }
+
+  console.log(device._id);
 
   const cachedRecord = await getCachedRecord(device._id);
 

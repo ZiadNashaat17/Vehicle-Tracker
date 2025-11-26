@@ -1,17 +1,17 @@
-import axios from "axios";
+import axios from 'axios';
 
 /**
  * Multiple Vehicle GPS Simulator
  * Simulates multiple vehicles with different routes
  */
 
-const API_URL = "http://localhost:3000/api/track";
+const API_URL = 'http://localhost:4000/api/track';
 const UPDATE_INTERVAL = 4000; // 3 seconds
 
 // Define multiple vehicles with different routes
 const VEHICLES = [
   {
-    deviceId: "6923feb9477b57abb8a2239f",
+    deviceId: '6926f323edd81b0296c62b7e',
     route: [
       { lat: 30.0444, lng: 31.2357 },
       { lat: 30.05, lng: 31.24 },
@@ -20,16 +20,16 @@ const VEHICLES = [
     ],
     speed: 60,
   },
-  {
-    deviceId: "691ebd94603e9c69e7e80c22",
-    route: [
-      { lat: 30.08, lng: 31.27 },
-      { lat: 30.075, lng: 31.265 },
-      { lat: 30.07, lng: 31.26 },
-      { lat: 30.065, lng: 31.255 },
-    ],
-    speed: 45,
-  },
+  // {
+  //   deviceId: '691ebd94603e9c69e7e80c22',
+  //   route: [
+  //     { lat: 30.08, lng: 31.27 },
+  //     { lat: 30.075, lng: 31.265 },
+  //     { lat: 30.07, lng: 31.26 },
+  //     { lat: 30.065, lng: 31.255 },
+  //   ],
+  //   speed: 45,
+  // },
 ];
 
 class VehicleSimulator {
@@ -83,22 +83,19 @@ class VehicleSimulator {
         `✅ ${this.deviceId}: Lat ${data.lat}, Lng ${data.lng}, Speed ${data.speed} km/h`
       );
     } catch (error) {
-      console.error(
-        `❌ ${this.deviceId}: Error -`,
-        error.response?.data?.message || error.message
-      );
+      console.error(`❌ ${this.deviceId}: Error -`, error.response?.data?.message || error.message);
     }
   }
 }
 
 // Create simulators for all vehicles
-const simulators = VEHICLES.map((vehicle) => new VehicleSimulator(vehicle));
+const simulators = VEHICLES.map(vehicle => new VehicleSimulator(vehicle));
 
-console.log("🚀 Starting Multi-Vehicle GPS Simulator...");
+console.log('🚀 Starting Multi-Vehicle GPS Simulator...');
 console.log(`📡 Simulating ${VEHICLES.length} vehicles`);
 console.log(`🎯 API Endpoint: ${API_URL}`);
 console.log(`⏱️  Update Interval: ${UPDATE_INTERVAL}ms`);
-console.log("");
+console.log('');
 
 // Send data for all vehicles
 const sendAllData = async () => {
@@ -119,11 +116,11 @@ sendAllData();
 // Handle graceful shutdown
 const shutdown = () => {
   clearInterval(timer);
-  console.log("\n\n❌ Simulation stopped");
+  console.log('\n\n❌ Simulation stopped');
   process.exit(0);
 };
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
-console.log("\n✅ Simulator running! Press Ctrl+C to stop.\n");
+console.log('\n✅ Simulator running! Press Ctrl+C to stop.\n');

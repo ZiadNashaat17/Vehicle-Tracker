@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cors from 'cors';
 
 import AppError from './src/util/appError.js';
 import globalErrorHandler from './src/services/errorController.js';
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
 app.use('/api', limit);
+app.use(cors());
 
 app.disable('x-powered-by');
 

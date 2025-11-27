@@ -4,8 +4,9 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 
 ## 📋 Table of Contents
 
+<!-- - [Architecture](#-architecture) -->
+
 - [Features](#-features)
-- [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)

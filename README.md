@@ -4,9 +4,8 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 
 ## 📋 Table of Contents
 
-<!-- - [Architecture](#-architecture) -->
-
 - [Features](#-features)
+- [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
@@ -36,10 +35,11 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 - **Caching Layer**: Redis for improved performance
 - **Data Validation**: Joi schema validation for GPS records
 - **Security**: Helmet, rate limiting, and CORS protection
-- **Containerization**: Docker and Docker Compose support
+- **Containerization**: Full Docker Compose deployment with health checks
+- **Service Discovery**: Docker networking for inter-service communication
 - **GPS Data Simulator**: Built-in script for testing with simulated vehicle data
 
-<!-- ## 🏗 Architecture
+## 🏗 Architecture
 
 The system follows a microservices architecture with IoT devices sending data through a message queue:
 
@@ -50,40 +50,55 @@ The system follows a microservices architecture with IoT devices sending data th
 └──────┬───────┘
        │ HTTP POST
        ▼
-┌─────────────┐         ┌──────────────┐         ┌─────────────┐
-│  Publisher  │────────▶│   RabbitMQ   │────────▶│  Consumer   │
-│  (Validate) │         │ Message Queue│         │  (Process)  │
-└─────────────┘         └──────────────┘         └──────┬──────┘
-                                                        │
-                                                        ▼
-                                                   ┌──────────┐
-                                                   │  Redis   │
-                                                   │ Pub/Sub  │
-                                                   └────┬─────┘
-                                                        │
-                                                        ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      API Gateway                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
-│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │     │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-                        ┌──────────────┐
-                        │   MongoDB    │
-                        └──────────────┘
-``` -->
+┌─────────────────┐         ┌──────────────┐         ┌─────────────────┐
+│  Publisher      │────────▶│   RabbitMQ   │────────▶│   Consumer      │
+│  Service        │         │ Message Queue│         │   Service       │
+│  (Port 3001)    │         │  (Port 5672) │         │  (Port 3002)    │
+│  - Validate     │         │              │         │  - Process      │
+│  - Publish      │         │              │         │  - Store        │
+└─────────────────┘         └──────────────┘         └────────┬────────┘
+                                                              │
+                                                              ▼
+                                                         ┌──────────-┐
+                                                         │  Redis    │
+                                                         │ Pub/Sub   │
+                                                         │(Port 6379)│
+                                                         └────┬─────-┘
+                                                              │
+                                                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      User Service (API Gateway)                     │
+│                           Port 3000                                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │             │
+│  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │             │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+                          ┌──────────────┐
+                          │   MongoDB    │
+                          │ (Port 27017) │
+                          └──────────────┘
+
+                    Docker Network: app-network
+         ┌─────────────────────────────────────────────────┐
+         │  All services communicate via Docker networking │
+         │  Health checks ensure proper startup order      │
+         └─────────────────────────────────────────────────┘
+```
 
 ### Component Responsibilities
 
-- **IoT Devices**: GPS tracking devices that send location data via HTTP
-- **Publisher**: Receives GPS tracking data from IoT devices, validates it, and publishes to RabbitMQ
-- **RabbitMQ**: Message broker for decoupling services and ensuring reliable message delivery
-- **Consumer**: Processes messages from RabbitMQ, stores in MongoDB, and publishes to Redis
-- **Redis**: Pub/sub messaging for real-time updates and caching layer for performance
-- **API Gateway**: Handles HTTP requests, authentication, WebSocket connections, and serves clients
-- **MongoDB**: Persistent data storage for vehicles, users, devices, and tracking records
+- **IoT Devices**: GPS tracking devices that send location data via HTTP to the Publisher Service
+- **Publisher Service** (Port 3001): Receives GPS tracking data from IoT devices, validates it using Joi schemas, and publishes to RabbitMQ queue
+- **RabbitMQ** (Ports 5672, 15672): Message broker for decoupling services and ensuring reliable message delivery with management UI
+- **Consumer Service** (Port 3002): Processes messages from RabbitMQ, stores records in MongoDB, and publishes real-time updates to Redis pub/sub channel
+- **Redis** (Port 6379): Pub/sub messaging for real-time updates and caching layer for improved performance
+- **User Service / API Gateway** (Port 3000): Handles HTTP requests, JWT authentication, WebSocket connections, and serves clients
+- **MongoDB** (Port 27017): Persistent data storage for vehicles, users, devices, geofences, and tracking records
+- **Docker Network**: All services communicate via the `app-network` bridge network with DNS-based service discovery
+- **Health Checks**: Ensures services start only when dependencies (MongoDB, Redis, RabbitMQ) are fully ready
 
 ## 🛠 Tech Stack
 
@@ -181,7 +196,7 @@ Before you begin, ensure you have the following installed:
    npm run start-dev  # or npm start for production
    ```
 
-### Option 2: Docker Deployment
+### Option 2: Docker Deployment (Recommended)
 
 1. **Clone the repository**
 
@@ -201,20 +216,46 @@ Before you begin, ensure you have the following installed:
    nano user/config.env
    ```
 
-3. **Start infrastructure services with Docker Compose**
+3. **Start all services with Docker Compose**
 
    ```bash
-   docker-compose up -d
+   # Build and start all services
+   docker-compose up --build
+
+   # Or run in detached mode
+   docker-compose up -d --build
    ```
 
-   This will start MongoDB, Redis, and RabbitMQ. You'll need to run the microservices separately.
+   This will start:
+
+   - MongoDB with health checks
+   - Redis with health checks
+   - RabbitMQ with management UI and health checks
+   - Publisher Service (waits for RabbitMQ to be healthy)
+   - Consumer Service (waits for RabbitMQ, Redis, and MongoDB)
+   - User Service (waits for Redis and MongoDB)
 
 4. **View logs**
+
    ```bash
+   # View logs for all services
+   docker-compose logs -f
+
    # View logs for specific services
-   docker-compose logs -f mongo
-   docker-compose logs -f redis
+   docker-compose logs -f user-service
+   docker-compose logs -f consumer-service
+   docker-compose logs -f publisher-service
    docker-compose logs -f rabbitmq
+   ```
+
+5. **Stop services**
+
+   ```bash
+   # Stop all services
+   docker-compose down
+
+   # Stop and remove volumes
+   docker-compose down -v
    ```
 
 ## ⚙ Configuration
@@ -225,29 +266,29 @@ Each microservice requires its own `config.env` file. Create the following confi
 
 ```env
 # Server Configuration
-NODE_ENV=development
 PORT=3001
 
-# RabbitMQ
-RABBITMQ_URL=amqp://localhost
+# RabbitMQ (use service name for Docker, localhost for local)
+RABBITMQ_URL=amqp://rabbitmq:5672
 ```
 
 ### Consumer Service (`consumer/config.env`)
 
 ```env
 # Server Configuration
-NODE_ENV=development
 PORT=3002
 
-# Database
-DATABASE=mongodb://localhost:27017/vehicle-tracker
+# Database (use service name for Docker, localhost for local)
+DATABASE=mongodb://mongo:27017/consumer
 
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
+# Redis (use service name for Docker, localhost for local)
+REDIS_URL=redis://redis:6379
 
-# RabbitMQ
-RABBITMQ_URL=amqp://localhost
+# RabbitMQ (use service name for Docker, localhost for local)
+RABBITMQ_URL=amqp://rabbitmq:5672
+
+# Inter-service communication
+USER_SERVICE_URL=http://user-service:3000
 ```
 
 ### User Service (`user/config.env`)
@@ -257,25 +298,41 @@ RABBITMQ_URL=amqp://localhost
 NODE_ENV=development
 PORT=3000
 
-# Database
-DATABASE=mongodb://localhost:27017/vehicle-tracker
+# Database (use service name for Docker, localhost for local)
+DATABASE=mongodb://mongo:27017/user
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=90d
 
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
+# Redis (use service name for Docker, localhost for local)
+REDIS_URL=redis://redis:6379
 
 # SendGrid Email
 SENDGRID_API_KEY=your-sendgrid-api-key
 EMAIL_FROM=yoursendgridemail@example.com
+
+# Inter-service communication
+CONSUMER_SERVICE_URL=http://consumer-service:3002
 ```
+
+**Note for Local Development**: Replace Docker service names (`mongo`, `redis`, `rabbitmq`, `user-service`, `consumer-service`) with `localhost` when running services outside of Docker.
 
 ## 💻 Usage
 
 ### Starting the Services
+
+#### Docker Deployment (Recommended)
+
+```bash
+# Start all services
+docker-compose up
+
+# Or run in detached mode
+docker-compose up -d
+```
+
+#### Local Development
 
 Each microservice runs on its own port:
 
@@ -283,7 +340,16 @@ Each microservice runs on its own port:
 - **Consumer Service**: `http://localhost:3002` - Processes data from RabbitMQ
 - **User Service**: `http://localhost:3000` - Main API gateway for client applications
 
-Make sure all three services are running for the complete system to function.
+**Access Points**:
+
+- **User**: http://localhost:3000
+- **Publisher**: http://localhost:3001
+- **Consumer**: http://localhost:3002
+- **RabbitMQ Management UI**: http://localhost:15672 (default credentials: guest/guest)
+- **MongoDB**: mongodb://localhost:27017
+- **Redis**: redis://localhost:6379
+
+Make sure all services are running and healthy for the complete system to function.
 
 ### Testing Real-time Tracking
 
@@ -334,7 +400,7 @@ The project includes a built-in GPS data simulator for testing without physical 
 
 ```bash
 # Start the simulator with default settings
-node simulateGPS.js
+node ./publisher/simulateGPS.js
 ```
 
 ### Features
@@ -545,7 +611,7 @@ Content-Type: application/json
 
 ```
 Vehicle-Tracker/
-├── publisher/                  # Publisher Microservice (Port 4000)
+├── publisher/                  # Publisher Microservice (Port 3001)
 │   ├── src/
 │   │   ├── controllers/       # Track data handlers
 │   │   │   └── trackController.js

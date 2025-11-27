@@ -135,45 +135,50 @@ Before you begin, ensure you have the following installed:
    cd Vehicle-Tracker
    ```
 
-2. **Install dependencies**
+2. **Install dependencies for each service**
 
    ```bash
-   npm install
+   # Install dependencies for all services
+   cd publisher && npm install && cd ..
+   cd consumer && npm install && cd ..
+   cd user && npm install && cd ..
    ```
 
 3. **Set up environment variables**
 
-   ```bash
-   cp config.env.example config.env
-   # Edit config.env with your configuration
-   ```
-
-4. **Start required services**
+   Create `config.env` files in each service directory (publisher, consumer, user):
 
    ```bash
-
+   # Copy and edit config.env for each service
+   cp publisher/config.env.example publisher/config.env
+   cp consumer/config.env.example consumer/config.env
+   cp user/config.env.example user/config.env
    ```
 
-# Start Redis
+4. **Start required infrastructure services**
 
-redis-server --daemonize yes
-redis-cli
+   ```bash
+   # Start MongoDB, Redis, and RabbitMQ using Docker Compose
+   docker-compose up -d mongo redis rabbitmq
+   ```
 
-# Start RabbitMQ
+5. **Run each microservice**
 
-docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4-management
+   Open separate terminal windows for each service:
 
-````
+   ```bash
+   # Terminal 1 - Publisher Service (Port 3001)
+   cd publisher
+   npm run start-dev  # or npm start for production
 
-5. **Run the application**
+   # Terminal 2 - Consumer Service (Port 3002)
+   cd consumer
+   npm run start-dev  # or npm start for production
 
-```bash
-# Development mode with auto-reload - Requires nodemon package installed
-npm run start-dev
-
-# Production mode
-npm start
-````
+   # Terminal 3 - User Service (Port 3000)
+   cd user
+   npm run start-dev  # or npm start for production
+   ```
 
 ### Option 2: Docker Deployment
 
@@ -186,32 +191,72 @@ npm start
 
 2. **Set up environment variables**
 
-   ```bash
-   cp config.env.example config.env
-   # Edit config.env with your configuration
-   ```
-
-3. **Start with Docker Compose**
+   Create `config.env` files for each service:
 
    ```bash
-   docker-compose up -d --build
+   # Edit config.env files for each service with your configuration
+   nano publisher/config.env
+   nano consumer/config.env
+   nano user/config.env
    ```
+
+3. **Start infrastructure services with Docker Compose**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+   This will start MongoDB, Redis, and RabbitMQ. You'll need to run the microservices separately.
 
 4. **View logs**
    ```bash
-   docker-compose logs -f backend
+   # View logs for specific services
+   docker-compose logs -f mongo
+   docker-compose logs -f redis
+   docker-compose logs -f rabbitmq
    ```
 
 ## ⚙ Configuration
 
-Create a `config.env` file in the root directory with the following variables:
+Each microservice requires its own `config.env` file. Create the following configuration files:
+
+### Publisher Service (`publisher/config.env`)
+
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=4000
+
+# RabbitMQ
+RABBITMQ_URL=amqp://localhost
+```
+
+### Consumer Service (`consumer/config.env`)
+
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=3002
+
+# Database
+DATABASE=mongodb://localhost:27017/vehicle-tracker
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# RabbitMQ
+RABBITMQ_URL=amqp://localhost
+```
+
+### User Service (`user/config.env`)
 
 ```env
 # Server Configuration
 NODE_ENV=development
 PORT=3000
 
-# Database - Update it with your DB URL
+# Database
 DATABASE=mongodb://localhost:27017/vehicle-tracker
 
 # JWT
@@ -222,20 +267,22 @@ JWT_EXPIRES_IN=90d
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# RabbitMQ
-RABBITMQ_URL=amqp://localhost
-
-# SendGrid Email - Update it with your data
+# SendGrid Email
 SENDGRID_API_KEY=your-sendgrid-api-key
 EMAIL_FROM=yoursendgridemail@example.com
-
 ```
 
 ## 💻 Usage
 
-### Starting the Server
+### Starting the Services
 
-The server will start on `http://localhost:3000` (or your configured PORT).
+Each microservice runs on its own port:
+
+- **Publisher Service**: `http://localhost:3001` - Receives GPS data from IoT devices
+- **Consumer Service**: `http://localhost:3002` - Processes data from RabbitMQ
+- **User Service**: `http://localhost:3000` - Main API gateway for client applications
+
+Make sure all three services are running for the complete system to function.
 
 ### Testing Real-time Tracking
 
@@ -244,11 +291,18 @@ The server will start on `http://localhost:3000` (or your configured PORT).
 The easiest way to test the system is using the built-in GPS data simulator:
 
 ```bash
-# Make sure the server is running first
-npm start
+# Make sure all services are running first
+# Terminal 1: Publisher Service
+cd publisher && npm start
 
-# In a new terminal, run the simulator
-node simulateGPS.js
+# Terminal 2: Consumer Service
+cd consumer && npm start
+
+# Terminal 3: User Service
+cd user && npm start
+
+# Terminal 4: Run the GPS simulator
+node publisher/simulateGPS.js
 ```
 
 The simulator will:
@@ -298,7 +352,7 @@ Edit `simulateGPS.js` to customize:
 ```javascript
 const VEHICLES = [
   {
-    deviceId: 'your-device-id',
+    deviceId: "your-device-id",
     route: [
       { lat: 30.0444, lng: 31.2357 },
       { lat: 30.05, lng: 31.24 },
@@ -399,7 +453,7 @@ Content-Type: application/json
 #### Submit GPS Record
 
 ```http
-POST /api/v1/track
+POST http://localhost:3001/api/v1/track
 Content-Type: application/json
 
 {
@@ -410,6 +464,8 @@ Content-Type: application/json
   "timestamp": "2025-11-23T10:30:00Z"
 }
 ```
+
+**Note:** GPS tracking data is submitted to the Publisher Service (port 3001).
 
 ### Live Tracking
 
@@ -479,8 +535,8 @@ Content-Type: application/json
 
 {
   "deviceId": "GPS-12345",
-  "model": "GPS Tracker Pro",
-  "imei": "123456789012345"
+  "deviceType": "GPS Tracker Pro",
+  "status": "active"
 }
 ```
 
@@ -488,41 +544,95 @@ Content-Type: application/json
 
 ```
 Vehicle-Tracker/
-├── src/
-│   ├── api-gateway/           # API Gateway Service
+├── publisher/                  # Publisher Microservice (Port 4000)
+│   ├── src/
+│   │   ├── controllers/       # Track data handlers
+│   │   │   └── trackController.js
+│   │   ├── routes/           # Publisher routes
+│   │   │   └── trackRoutes.js
+│   │   └── services/         # RabbitMQ publisher, validation
+│   │       ├── publishToRabbitMQ.js
+│   │       └── validateRecord.js
+│   ├── app.js                # Express app configuration
+│   ├── server.js             # Publisher entry point
+│   ├── simulateGPS.js        # GPS data simulator
+│   ├── package.json          # Publisher dependencies
+│   ├── config.env            # Publisher configuration
+│   └── Dockerfile            # Publisher container image
+│
+├── consumer/                   # Consumer Microservice (Port 3002)
+│   ├── src/
+│   │   ├── controllers/       # Record processing
+│   │   │   └── recordController.js
+│   │   ├── middlewares/       # Authentication middleware
+│   │   │   └── authenticateUser.js
+│   │   ├── models/           # Record models
+│   │   │   └── recordModel.js
+│   │   ├── routes/           # Consumer routes
+│   │   │   └── recordsRoutes.js
+│   │   ├── services/         # RabbitMQ consumer, Redis pub
+│   │   │   ├── cache.js
+│   │   │   ├── consumeRabbitMQ.js
+│   │   │   └── redisChannelPublish.js
+│   │   └── util/             # Utility functions
+│   │       ├── apiFeatures.js
+│   │       ├── appError.js
+│   │       ├── catchAsync.js
+│   │       ├── email.js
+│   │       └── filterObj.js
+│   ├── app.js                # Express app configuration
+│   ├── server.js             # Consumer entry point
+│   ├── package.json          # Consumer dependencies
+│   ├── config.env            # Consumer configuration
+│   └── Dockerfile            # Consumer container image
+│
+├── user/                       # User/API Gateway Microservice (Port 3000)
+│   ├── src/
 │   │   ├── controllers/       # Request handlers
+│   │   │   ├── authController.js
+│   │   │   ├── deviceController.js
+│   │   │   ├── geofenceController.js
+│   │   │   ├── histroyController.js
+│   │   │   ├── liveController.js
+│   │   │   ├── userController.js
+│   │   │   ├── validateUser.js
+│   │   │   └── vehicleController.js
 │   │   ├── models/           # Database models
+│   │   │   ├── deviceModel.js
+│   │   │   ├── geofenceModel.js
+│   │   │   ├── userModel.js
+│   │   │   └── vehicleModel.js
 │   │   ├── routes/           # API routes
-│   │   └── services/         # Business logic (WebSocket, Redis)
-│   ├── publisher/            # Publisher Service
-│   │   ├── controllers/      # Track data handlers
-│   │   ├── routes/          # Publisher routes
-│   │   └── services/        # RabbitMQ publisher, validation
-│   ├── consumer/             # Consumer Service
-│   │   ├── controllers/     # Record processing
-│   │   ├── models/          # Record models
-│   │   └── services/        # RabbitMQ consumer, Redis pub
-│   ├── services/            # Shared services
-│   │   ├── authenticate.js  # JWT authentication
-│   │   ├── authorize.js     # Role-based authorization
-│   │   └── errorController.js
-│   └── util/                # Utility functions
-│       ├── apiFeatures.js   # Query features
-│       ├── appError.js      # Error handling
-│       ├── catchAsync.js    # Async error wrapper
-│       ├── email.js         # Email service
-│       └── filterObj.js     # Object filtering
-├── app.js                   # Express app configuration
-├── server.js               # Server entry point
-├── simulateGPS.js    # GPS data simulator for testing
+│   │   │   ├── deviceRoutes.js
+│   │   │   ├── geofenceRoutes.js
+│   │   │   ├── historyRoutes.js
+│   │   │   ├── liveRoutes.js
+│   │   │   ├── userRoutes.js
+│   │   │   └── vehicleRoutes.js
+│   │   ├── services/         # Business logic
+│   │   │   ├── authenticate.js      # JWT authentication
+│   │   │   ├── authorize.js         # Role-based authorization
+│   │   │   ├── errorController.js   # Error handling
+│   │   │   ├── redisCache.js        # Redis caching
+│   │   │   ├── redisChannelSubscribe.js  # Redis pub/sub
+│   │   │   └── websocket.js         # WebSocket handling
+│   │   └── util/             # Utility functions
+│   │       ├── apiFeatures.js
+│   │       ├── appError.js
+│   │       ├── catchAsync.js
+│   │       ├── email.js
+│   │       └── filterObj.js
+│   ├── app.js                # Express app configuration
+│   ├── server.js             # User service entry point
+│   ├── live-tracking.html    # Live tracking demo page
+│   ├── package.json          # User service dependencies
+│   ├── config.env            # User service configuration
+│   └── Dockerfile            # User service container image
+│
 ├── docs/
-│   └── GPS_SIMULATOR.md    # GPS simulator documentation
-├── docker-compose.yml      # Docker services configuration
-├── Dockerfile             # Container image definition
-├── package.json          # Dependencies and scripts
-├── config.env           # Environment variables
-├── live-tracking.html   # Live tracking demo
-└── test-socket-connection.html   # Socket.io testing page
+│   └── GPS_SIMULATOR.md      # GPS simulator documentation
+├── docker-compose.yml         # Infrastructure services (MongoDB, Redis, RabbitMQ)
+└── README.md                  # This file
 ```
 
 ## 🤝 Contributing

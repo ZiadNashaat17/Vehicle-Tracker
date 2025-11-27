@@ -4,7 +4,7 @@ import { connectRabbitMQ } from './src/services/publishToRabbitMQ.js';
 
 config({ path: './config.env' });
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3001;
 
 (async () => {
   try {

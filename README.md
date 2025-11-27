@@ -38,7 +38,7 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 - **Containerization**: Docker and Docker Compose support
 - **GPS Data Simulator**: Built-in script for testing with simulated vehicle data
 
-## 🏗 Architecture
+<!-- ## 🏗 Architecture
 
 The system follows a microservices architecture with IoT devices sending data through a message queue:
 
@@ -72,7 +72,7 @@ The system follows a microservices architecture with IoT devices sending data th
                         ┌──────────────┐
                         │   MongoDB    │
                         └──────────────┘
-```
+``` -->
 
 ### Component Responsibilities
 

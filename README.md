@@ -51,7 +51,7 @@ The system follows a microservices architecture with IoT devices sending data th
        │ HTTP POST
        ▼
 ┌─────────────────┐         ┌──────────────┐         ┌─────────────────┐
-│  Publisher      │────────▶│   RabbitMQ   │────────▶│   Consumer      │
+│  Publisher      │───────▶│   RabbitMQ   │────────▶│   Consumer      │
 │  Service        │         │ Message Queue│         │   Service       │
 │  (Port 3001)    │         │  (Port 5672) │         │  (Port 3002)    │
 │  - Validate     │         │              │         │  - Process      │

@@ -4,8 +4,8 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 
 ## 📋 Table of Contents
 
-- [Features](#-features)
 - [Architecture](#-architecture)
+- [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
@@ -59,20 +59,20 @@ The system follows a microservices architecture with IoT devices sending data th
 └─────────────────┘         └──────────────┘         └────────┬────────┘
                                                               │
                                                               ▼
-                                                         ┌────────---┐
-                                                         │  Redis    │
-                                                         │ Pub/Sub   │
+                                                         ┌──────────┐
+                                                         │  Redis   │
+                                                         │ Pub/Sub  │
                                                          │(Port 6379)│
-                                                         └────┬───---┘
+                                                         └────┬─────┘
                                                               │
                                                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      User Service (API Gateway)                     │
 │                           Port 3000                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │             │
-│  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │             │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
+│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │            │
+│  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │            │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘            │
 └────────────────────────────────┬────────────────────────────────────┘
                                  │
                                  ▼
@@ -83,7 +83,7 @@ The system follows a microservices architecture with IoT devices sending data th
 
                     Docker Network: app-network
          ┌─────────────────────────────────────────────────┐
-         │  All services communicate via Docker networking │
+         │  All services communicate via Docker networking  │
          │  Health checks ensure proper startup order      │
          └─────────────────────────────────────────────────┘
 ```

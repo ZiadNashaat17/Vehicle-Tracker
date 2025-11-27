@@ -226,7 +226,7 @@ Each microservice requires its own `config.env` file. Create the following confi
 ```env
 # Server Configuration
 NODE_ENV=development
-PORT=4000
+PORT=3001
 
 # RabbitMQ
 RABBITMQ_URL=amqp://localhost

@@ -1,9 +1,7 @@
 import express from 'express';
-import morgan from 'morgan';
-import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-
-import trackRouter from './src/routes/trackRoutes.js';
+import helmet from 'helmet';
+import morgan from 'morgan';
 
 const app = express();
 const limit = rateLimit({
@@ -21,11 +19,5 @@ if (process.env.NODE_ENV.trim() === 'development') {
 }
 
 app.disable('x-powered-by');
-
-app.use('/api/track', trackRouter);
-
-app.use((req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
 
 export default app;

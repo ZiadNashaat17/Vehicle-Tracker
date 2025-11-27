@@ -5,7 +5,7 @@ import { updateVehicleLastLocation } from '../controllers/vehicleController.js';
 let subClient;
 
 export async function initRedisSubscriber(io) {
-  subClient = createClient({ url: 'redis://localhost:6379' });
+  subClient = createClient({ url: process.env.REDIS_URL });
   subClient.on('error', err => console.log('Redis Subscriber Error', err));
   subClient.on('connect', () => console.log('Redis Subscriber Connected'));
 

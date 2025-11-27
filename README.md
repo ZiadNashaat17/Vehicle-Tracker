@@ -55,38 +55,40 @@ The system follows a microservices architecture with IoT devices sending data th
 │  Service        │         │ Message Queue│         │   Service       │
 │  (Port 3001)    │         │  (Port 5672) │         │  (Port 3002)    │
 │  - Validate     │         │              │         │  - Process      │
-│  - Publish      │         │              │         │  - Store        │
-└─────────────────┘         └──────────────┘         └────────┬────────┘
-                                                              │
-                                                              ▼
-                                                         ┌──────────┐
-                                                         │  Redis   │
-                                                         │ Pub/Sub  │
-                                                         │(Port     │
-                                                         │    6379) │
-                                                         └────┬─────┘
-                                                              │
-                                                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      User Service (API Gateway)                     │
-│                           Port 3000                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │             │
-│  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │             │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
-└────────────────────────────────┬────────────────────────────────────┘
-                                 │
-                                 ▼
-                          ┌──────────────┐
-                          │   MongoDB    │
-                          │ (Port 27017) │
-                          └──────────────┘
+│  - Publish      │         │              │         │  - Store in DB  │
+└─────────────────┘         └──────────────┘         └────┬───┬────────┘
+                                                          │   │
+                                    ┌─────────────────────┘   └────────┐
+                                    │                                  │
+                                    ▼                                  ▼
+                             ┌──────────────┐                      ┌──────────┐
+                             │   MongoDB    │                      │  Redis   │
+                             │ (Port 27017) │                      │ Pub/Sub  │
+                             │ - Records DB │                      │(Port     │
+                             └──────────────┘                      │    6379) │
+                                                                   └────┬─────┘
+                                                                        │
+                                                                        ▼
+       ┌─────────────────────────────────────────────────────────────────────┐
+       │                      User Service (API Gateway)                     │
+       │                           Port 3000                                 │
+       │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+       │  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │             │
+       │  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │             │
+       │  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
+       └────────────────────────────────┬────────────────────────────────────┘
+                                        │
+                                        ▼
+                                 ┌──────────────┐
+                                 │   MongoDB    │
+                                 │ (Port 27017) │
+                                 └──────────────┘
 
-                    Docker Network: app-network
-         ┌─────────────────────────────────────────────────┐
-         │  All services communicate via Docker networking  │
-         │  Health checks ensure proper startup order      │
-         └─────────────────────────────────────────────────┘
+                           Docker Network: app-network
+                ┌─────────────────────────────────────────────────┐
+                │  All services communicate via Docker networking │
+                │  Health checks ensure proper startup order      │
+                └─────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities

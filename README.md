@@ -62,17 +62,18 @@ The system follows a microservices architecture with IoT devices sending data th
                                                          ┌──────────┐
                                                          │  Redis   │
                                                          │ Pub/Sub  │
-                                                         │(Port 6379)│
+                                                         │(Port     │
+                                                         │    6379) │
                                                          └────┬─────┘
                                                               │
                                                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      User Service (API Gateway)                     │
 │                           Port 3000                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
-│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │            │
-│  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │            │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘            │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │ WebSocket│  │   Auth   │  │ Vehicles │  │ Geofence │             │
+│  │  Server  │  │   JWT    │  │  CRUD    │  │   CRUD   │             │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
 └────────────────────────────────┬────────────────────────────────────┘
                                  │
                                  ▼

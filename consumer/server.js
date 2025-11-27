@@ -3,8 +3,11 @@ import app from './app.js';
 import consumeRabbitMQ from './src/services/consumeRabbitMQ.js';
 import { initRedisPublisher } from './src/services/redisChannelPublish.js';
 import { connect } from 'mongoose';
+import validateUser from './src/middlewares/authenticateUser.js';
 
 config({ path: './config.env' });
+
+const port = process.env.PORT || 3002;
 
 (async () => {
   try {
@@ -13,6 +16,10 @@ config({ path: './config.env' });
 
     await consumeRabbitMQ();
     await initRedisPublisher();
+
+    app.listen(port, () => {
+      console.log(`Consumer service is up and running on port: ${port}`);
+    });
   } catch (error) {
     console.error('Consumer service startup error: ', error);
     process.exit(1);

@@ -11,6 +11,7 @@ import deviceRouter from './src/routes/deviceRoutes.js';
 import vehicleRouter from './src/routes/vehicleRoutes.js';
 import geofenceRouter from './src/routes/geofenceRoutes.js';
 import liveRouter from './src/routes/liveRoutes.js';
+import historyRouter from './src/routes/historyRoutes.js';
 
 const app = express();
 const limit = rateLimit({
@@ -32,6 +33,7 @@ app.use('/api/vehicles', vehicleRouter);
 app.use('/api/device', deviceRouter);
 app.use('/api/geofence', geofenceRouter);
 app.use('/api/live', liveRouter);
+app.use('/api/history', historyRouter);
 
 app.use(globalErrorHandler);
 app.use((req, res, next) => {

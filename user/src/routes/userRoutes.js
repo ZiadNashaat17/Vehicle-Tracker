@@ -12,6 +12,7 @@ import {
   deactivateUser,
 } from '../controllers/authController.js';
 import authenticate from '../services/authenticate.js';
+import validateUser from '../controllers/validateUser.js';
 
 const router = Router();
 
@@ -21,6 +22,8 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:resetToken', resetPassword);
 router.patch('/reactivate-user', reactivateuser);
+
+router.get('/authenticate-user', validateUser);
 
 router.use(authenticate);
 router.get('/get-user', getUser);

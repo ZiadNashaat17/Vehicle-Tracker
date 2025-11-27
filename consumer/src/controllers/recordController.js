@@ -1,26 +1,14 @@
 import Record from '../models/recordModel.js';
 import AppError from '../util/appError.js';
-import Vehicle from '../models/vehicleModel.js';
-import Device from '../models/deviceModel.js';
-import APIFeatures from '../../util/apiFeatures.js';
+import APIFeatures from '../util/apiFeatures.js';
 
-export const getVehicleHistory = async (req, res, next) => {
-  const { plateNumber, startDate, endDate } = req.body;
+export const getAllRecordsForVehicle = async (req, res, next) => {
+  const { deviceId, startDate, endDate } = req.body;
 
-  if (!plateNumber) {
-    return next(new AppError('Please provide a plate number', 400));
-  }
+  console.log(req.body);
 
-  const vehicle = await Vehicle.findOne({ plateNumber });
-
-  if (!vehicle) {
-    return next(new AppError('No vehicle found with this plate number', 404));
-  }
-
-  const device = await Device.findOne({ vehicleId: vehicle._id });
-
-  if (!device) {
-    return next(new AppError('You do not have access to this vehicle', 403));
+  if (!deviceId) {
+    return next(new AppError('Please provide a device id', 400));
   }
 
   let features;
@@ -28,7 +16,7 @@ export const getVehicleHistory = async (req, res, next) => {
 
   if (startDate && endDate) {
     features = new APIFeatures(
-      Record.find({ deviceId: device._id, timestamp: { $gte: startDate, $lte: endDate } }),
+      Record.find({ deviceId, timestamp: { $gte: startDate, $lte: endDate } }),
       req.query
     )
       .filter()
@@ -37,27 +25,26 @@ export const getVehicleHistory = async (req, res, next) => {
       .paginate();
 
     totalRecords = await Record.countDocuments({
-      deviceId: device._id,
+      deviceId,
       timestamp: { $gte: startDate, $lte: endDate },
     });
   } else {
-    features = new APIFeatures(Record.find({ deviceId: device._id }), req.query)
+    features = new APIFeatures(Record.find({ deviceId }), req.query)
       .filter()
       .sort()
       .limit()
       .paginate();
 
-    totalRecords = await Record.countDocuments({ deviceId: device._id });
+    totalRecords = await Record.countDocuments({ deviceId });
   }
 
   const records = await features.query;
 
   res.status(200).json({
-    success: true,
+    status: 'success',
     total: totalRecords,
     data: {
-      deviceId: device._id,
-      plateNumber: vehicle.plateNumber,
+      deviceId,
       history: records,
     },
   });

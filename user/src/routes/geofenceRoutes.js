@@ -7,7 +7,7 @@ import {
   getGeofence,
   recoverGeofence,
 } from '../controllers/geofenceController.js';
-import authenticate from '../services/authenticate.js';
+import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 

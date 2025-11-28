@@ -1,4 +1,5 @@
 import { publishRecord } from '../services/publishToRabbitMQ.js';
+import AppError from '../util/appError.js';
 
 export const trackController = async (req, res, next) => {
   try {
@@ -12,12 +13,6 @@ export const trackController = async (req, res, next) => {
       data: record,
     });
   } catch (error) {
-    console.error('Error in publishRecordHandler:', error);
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to process record',
-      error: error.message,
-    });
+    next(new AppError('Error in publishing record to rabbitmq queue!', 500));
   }
 };

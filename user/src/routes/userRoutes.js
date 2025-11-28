@@ -11,8 +11,8 @@ import {
   changePassword,
   deactivateUser,
 } from '../controllers/authController.js';
-import authenticate from '../services/authenticate.js';
-import validateUser from '../controllers/validateUser.js';
+import authenticate from '../middlewares/authenticate.js';
+import validateUser from '../controllers/authenticateUser.js';
 
 const router = Router();
 

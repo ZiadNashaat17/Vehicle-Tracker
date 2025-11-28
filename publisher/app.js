@@ -2,7 +2,12 @@ import express from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { config } from 'dotenv';
 
+config({ path: './config.env' });
+
+import globalErrorHandler from './src/middlewares/errorController.js';
+import AppError from './src/util/appError.js';
 import trackRouter from './src/routes/trackRoutes.js';
 
 const app = express();
@@ -16,7 +21,7 @@ app.use(express.json());
 app.use(helmet());
 app.use('/api', limit);
 
-if (process.env.NODE_ENV.trim() === 'development') {
+if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
@@ -27,5 +32,7 @@ app.use('/api/track', trackRouter);
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
+
+app.use(globalErrorHandler);
 
 export default app;

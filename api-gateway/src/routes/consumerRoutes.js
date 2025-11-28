@@ -1,10 +1,9 @@
 import { Router } from 'express';
-
-import { updateLive } from '../controllers/liveController.js';
+import { getVehicleHistory } from '../controllers/consumerController.js';
 import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 
-router.post('/', authenticate, updateLive);
+router.get('/:deviceId', authenticate, getVehicleHistory);
 
 export default router;

@@ -1,0 +1,189 @@
+import axios from 'axios';
+import AppError from '../util/appError.js';
+import filterObj from '../util/filterObj.js';
+
+export const register = async (req, res, next) => {
+  try {
+    const { email, name, role, password, passwordConfirm } = req.body;
+
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/register`, {
+      email,
+      name,
+      role,
+      password,
+      passwordConfirm,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || error?.message || 'Registration failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return next(new AppError('Please enter email and password', 400));
+    }
+
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/login`, {
+      email,
+      password,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || error?.message || 'Login failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const verificationToken = req.params.token;
+    const response = await axios.get(
+      `${process.env.USER_SERVICE_URL}/api/user/verify-email/${verificationToken}`
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || error?.message || 'Email verification failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getUser = async (req, res, next) => {
+  try {
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+      return next(new AppError('No token provided. Please log in to get access.', 401));
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/get-user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(error?.response?.data?.message || 'Failed', error?.response?.status || 500)
+    );
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  try {
+    const filteredBody = filterObj(req.body, 'name', 'email');
+
+    if (req.body.password) {
+      return next(new AppError('You cannot update password here!', 400));
+    }
+
+    if (filteredBody.email !== undefined) {
+      if (!filteredBody.email || filteredBody.email.trim() === '') {
+        return next(new AppError('Email cannot be empty!', 400));
+      }
+
+      if (!isEmail(filteredBody.email)) {
+        return next(new AppError('Invalid email!', 400));
+      }
+    }
+
+    if (filteredBody.name !== undefined) {
+      if (!filteredBody.name || filteredBody.name.trim() === '') {
+        return next(new AppError('Name cannot be empty!', 400));
+      }
+    }
+
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+      return next(new AppError('No token provided. Please log in to get access.', 401));
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/user/update-user`,
+      {
+        name: filteredBody.name,
+        email: filteredBody.email,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log(response.data);
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Updating failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword, newPasswordConfirm } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return next(new AppError('Please enter the current password and new password!', 400));
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+      return next(new AppError('Passwords are not the same!', 400));
+    }
+
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+      return next(new AppError('No token provided. Please log in to get access.', 401));
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/user/change-password`,
+      {
+        currentPassword,
+        newPassword,
+        newPasswordConfirm,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Password changing failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};

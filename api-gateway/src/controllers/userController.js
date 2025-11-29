@@ -1,4 +1,6 @@
 import axios from 'axios';
+import isEmail from 'validator/lib/isEmail.js';
+
 import AppError from '../util/appError.js';
 import filterObj from '../util/filterObj.js';
 
@@ -182,6 +184,110 @@ export const changePassword = async (req, res, next) => {
     return next(
       new AppError(
         error?.response?.data?.message || 'Password changing failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !isEmail(email)) {
+      return next(new AppError('Please enter your email.', 400));
+    }
+
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/forgot-password`, {
+      email,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { password, passwordConfirm } = req.body;
+    const token = req.params.token;
+
+    if (!password || !passwordConfirm) {
+      return next(new AppError('Password and password confirm is required', 400));
+    }
+    if (!token) {
+      return next(new AppError('You must enter the token you received', 400));
+    }
+
+    if (password !== passwordConfirm) {
+      return next(new AppError('Passwords are not the same', 400));
+    }
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/user/reset-password/${token}`,
+      { password, passwordConfirm }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const deactivateUser = async (req, res, next) => {
+  try {
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+      return next(new AppError('No token provided. Please log in to get access.', 401));
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/user/deactivate-user`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const reactivateUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return next(new AppError('Email and password are required', 400));
+    }
+
+    const response = await axios.patch(`${process.env.USER_SERVICE_URL}/api/user/reactivate-user`, {
+      email,
+      password,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
         error?.response?.status || 500
       )
     );

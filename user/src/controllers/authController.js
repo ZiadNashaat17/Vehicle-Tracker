@@ -174,7 +174,7 @@ export const deactivateUser = async (req, res, next) => {
   });
 };
 
-export const reactivateuser = async (req, res, next) => {
+export const reactivateUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select('+password');

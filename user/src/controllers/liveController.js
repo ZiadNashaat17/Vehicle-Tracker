@@ -5,7 +5,7 @@ import { getCachedRecord } from '../services/redisCache.js';
 
 export const updateLive = async (req, res, next) => {
   console.log('updateLive controller');
-  const { plateNumber } = req.body;
+  const plateNumber = req.params.plateNumber;
   const vehicle = await Vehicle.findOne({ plateNumber });
 
   if (!vehicle) {
@@ -13,7 +13,7 @@ export const updateLive = async (req, res, next) => {
     return next(new AppError('No vehicle found with this plate number!', 404));
   }
 
-  console.log('vehicle: ', vehicle);
+  // console.log('vehicle: ', vehicle);
 
   const device = await Device.findById(vehicle.deviceId);
 
@@ -22,7 +22,7 @@ export const updateLive = async (req, res, next) => {
     return next(new AppError('No device found for this vehicle!', 404));
   }
 
-  console.log(device._id);
+  // console.log(device._id);
 
   const cachedRecord = await getCachedRecord(device._id);
 
@@ -31,7 +31,7 @@ export const updateLive = async (req, res, next) => {
   }
 
   res.status(200).json({
-    success: true,
+    status: 'success',
     message: 'Vehicle tracking is live',
     data: {
       deviceId: device._id,

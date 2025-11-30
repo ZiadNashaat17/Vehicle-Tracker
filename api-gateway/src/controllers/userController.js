@@ -293,3 +293,384 @@ export const reactivateUser = async (req, res, next) => {
     );
   }
 };
+
+// --------------------------------------------------- //
+
+export const createVehicle = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/vehicle`, req.body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getAllVehicles = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/vehicle`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getVehicleWithPlateNumber = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const plateNumber = req.params.plateNumber;
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/vehicle/${plateNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const updateVehicle = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const plateNumber = req.params.plateNumber;
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/vehicle/${plateNumber}`,
+      req.body,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const removeVehicle = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const plateNumber = req.params.plateNumber;
+
+    const response = await axios.delete(
+      `${process.env.USER_SERVICE_URL}/api/vehicle/${plateNumber}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+// --------------------------------------------------- //
+
+export const createDevice = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/device`, req.body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getDevice = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const deviceId = req.params.deviceId;
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device/${deviceId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getAllDevices = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const updateDevice = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const deviceId = req.params.deviceId;
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/device/${deviceId}`,
+      req.body,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const deleteDevice = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const deviceId = req.params.deviceId;
+
+    const response = await axios.delete(`${process.env.USER_SERVICE_URL}/api/device/${deviceId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+// --------------------------------------------------- //
+
+export const createGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/geofence`, req.body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const geofenceId = req.params.id;
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getAllGeofences = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/geofence`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const disableGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const geofenceId = req.params.id;
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/geofence/disable-geofence/${geofenceId}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const recoverGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const geofenceId = req.params.id;
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/geofence/recover-geofence/${geofenceId}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const updateGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const geofenceId = req.params.id;
+
+    const response = await axios.patch(
+      `${process.env.USER_SERVICE_URL}/api/geofence/update-geofence/${geofenceId}`,
+      req.body,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const deleteGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const geofenceId = req.params.id;
+
+    const response = await axios.delete(
+      `${process.env.USER_SERVICE_URL}/api/geofence/delete-geofence/${geofenceId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+// --------------------------------------------------- //
+export const trackLive = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const plateNumber = req.params.plateNumber;
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/live/${plateNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};

@@ -156,7 +156,7 @@ export const updateUser = async (req, res, next) => {
   }).select('-_id -__v -role');
 
   res.status(201).json({
-    success: true,
+    status: 'success',
     message: 'Account updated successfully',
     data: {
       user,

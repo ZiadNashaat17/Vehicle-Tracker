@@ -34,7 +34,7 @@ if (process.env.NODE_ENV.trim() === 'development') {
 app.disable('x-powered-by');
 
 app.use('/api/user', userRouter);
-app.use('/api/vehicles', vehicleRouter);
+app.use('/api/vehicle', vehicleRouter);
 app.use('/api/device', deviceRouter);
 app.use('/api/geofence', geofenceRouter);
 app.use('/api/live', liveRouter);

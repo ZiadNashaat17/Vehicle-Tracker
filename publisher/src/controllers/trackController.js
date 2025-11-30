@@ -8,7 +8,7 @@ export const trackController = async (req, res, next) => {
     await publishRecord(record);
 
     res.status(200).json({
-      success: true,
+      status: 'success',
       message: 'Record received and queued for processing',
       data: record,
     });

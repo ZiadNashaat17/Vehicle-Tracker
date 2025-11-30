@@ -5,8 +5,8 @@ import axios from 'axios';
  * Simulates multiple vehicles with different routes
  */
 
-const API_URL = 'http://localhost:4000/api/track';
-const UPDATE_INTERVAL = 4000; // 3 seconds
+const API_URL = 'http://localhost:5000/api/track';
+const UPDATE_INTERVAL = 3000; // 3 seconds
 
 // Define multiple vehicles with different routes
 const VEHICLES = [

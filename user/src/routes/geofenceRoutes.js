@@ -6,16 +6,19 @@ import {
   getAllGeofences,
   getGeofence,
   recoverGeofence,
+  updateGeofence,
 } from '../controllers/geofenceController.js';
 import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 
-router.post('/', authenticate, createGeofence);
-router.get('/', authenticate, getAllGeofences);
-router.get('/:id', authenticate, getGeofence);
-router.patch('/disable-geofence/:id', authenticate, disableGeofence);
-router.patch('/recover-geofence/:id', authenticate, recoverGeofence);
-router.delete('/delete-geofence/:id', authenticate, deleteGeofence);
+router.use(authenticate);
+router.post('/', createGeofence);
+router.get('/', getAllGeofences);
+router.get('/:id', getGeofence);
+router.patch('/disable-geofence/:id', disableGeofence);
+router.patch('/recover-geofence/:id', recoverGeofence);
+router.patch('/update-geofence/:id', updateGeofence);
+router.delete('/delete-geofence/:id', deleteGeofence);
 
 export default router;

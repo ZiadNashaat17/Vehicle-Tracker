@@ -1,4 +1,18 @@
 services:
+  gateway-service:
+    build: ./api-gateway
+    container_name: apigateway-service
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./api-gateway/config.env
+    networks:
+      - app-network
+    depends_on:
+      - user-service
+      - publisher-service
+      - consumer-service
+
   user-service:
     build: ./user
     container_name: user-service

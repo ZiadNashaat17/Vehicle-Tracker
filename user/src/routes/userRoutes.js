@@ -6,13 +6,13 @@ import {
   login,
   forgotPassword,
   resetPassword,
-  reactivateuser,
+  reactivateUser,
   updateUser,
   changePassword,
   deactivateUser,
 } from '../controllers/authController.js';
-import authenticate from '../services/authenticate.js';
-import validateUser from '../controllers/validateUser.js';
+import authenticate from '../middlewares/authenticate.js';
+import validateUser from '../controllers/authenticateUser.js';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get('/verify-email/:verifyToken', verifyEmail);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:resetToken', resetPassword);
-router.patch('/reactivate-user', reactivateuser);
+router.patch('/reactivate-user', reactivateUser);
 
 router.get('/authenticate-user', validateUser);
 

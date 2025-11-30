@@ -3,7 +3,6 @@ import app from './app.js';
 import consumeRabbitMQ from './src/services/consumeRabbitMQ.js';
 import { initRedisPublisher } from './src/services/redisChannelPublish.js';
 import { connect } from 'mongoose';
-import validateUser from './src/middlewares/authenticateUser.js';
 
 config({ path: './config.env' });
 

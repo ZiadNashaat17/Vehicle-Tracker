@@ -6,7 +6,7 @@ import {
   removeVehicle,
   updateVehicle,
 } from '../controllers/vehicleController.js';
-import authenticate from '../services/authenticate.js';
+import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 

@@ -6,8 +6,8 @@ import {
   getDevice,
   updateDevice,
 } from '../controllers/deviceController.js';
-import authenticate from '../services/authenticate.js';
-import authorize from '../services/authorize.js';
+import authenticate from '../middlewares/authenticate.js';
+import authorize from '../middlewares/authorize.js';
 
 const router = Router();
 

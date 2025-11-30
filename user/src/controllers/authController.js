@@ -64,14 +64,14 @@ export const register = catchAsync(async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
   const verificationToken = req.params.verifyToken;
 
-  console.log(verificationToken);
+  // console.log(verificationToken);
 
   const hashedVerificationToken = crypto
     .createHash('sha256')
     .update(verificationToken)
     .digest('hex');
 
-  console.log({ hashedVerificationToken });
+  // console.log({ hashedVerificationToken });
 
   const user = await User.findOne({
     emailVerificationToken: hashedVerificationToken,
@@ -91,7 +91,7 @@ export const verifyEmail = async (req, res, next) => {
 
   await user.save();
 
-  createSendToken(user, 201, res);
+  createSendToken(user, 200, res);
 };
 
 export const login = async (req, res, next) => {
@@ -156,10 +156,10 @@ export const updateUser = async (req, res, next) => {
   }).select('-_id -__v -role');
 
   res.status(201).json({
-    success: true,
+    status: 'success',
     message: 'Account updated successfully',
     data: {
-      updatedUser: user,
+      user,
     },
   });
 };
@@ -174,7 +174,7 @@ export const deactivateUser = async (req, res, next) => {
   });
 };
 
-export const reactivateuser = async (req, res, next) => {
+export const reactivateUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select('+password');
@@ -210,10 +210,10 @@ export const changePassword = async (req, res, next) => {
     return next(new AppError('Please enter the current password and new password!', 400));
   }
 
-  const user = User.findOne({ _id: req.user._id }).select('+password');
+  const user = await User.findOne({ _id: req.user._id }).select('+password');
 
-  if (!(await user.isPasswordCorrect(password, user.password))) {
-    return next(new AppError('The current password you entered!', 400));
+  if (!(await user.isPasswordCorrect(currentPassword, user.password))) {
+    return next(new AppError('The current password you entered is incorrect!', 400));
   }
 
   if (newPassword !== newPasswordConfirm) {
@@ -222,6 +222,8 @@ export const changePassword = async (req, res, next) => {
 
   user.password = newPassword;
   await user.save();
+
+  user.password = undefined;
 
   res.status(201).json({
     status: 'success',

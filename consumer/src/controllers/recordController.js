@@ -3,7 +3,9 @@ import AppError from '../util/appError.js';
 import APIFeatures from '../util/apiFeatures.js';
 
 export const getAllRecordsForVehicle = async (req, res, next) => {
-  const { deviceId, startDate, endDate } = req.body;
+  const deviceId = req.params.deviceId;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
 
   console.log(req.body);
 

@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 import Record from '../models/recordModel.js';
-import { cacheLatestRecord } from './cache.js';
+import { cacheLatestRecord, clearHash } from './cache.js';
 import { publishRecord } from './redisChannelPublish.js';
 
 export default async () => {
@@ -21,6 +21,10 @@ export default async () => {
         console.log(`Consumer received record: ${JSON.stringify(input)}`);
 
         const record = await Record.create(input);
+
+        // Clear all cached queries for this device
+        await clearHash(record.deviceId);
+
         cacheLatestRecord(input);
 
         await publishRecord(record);

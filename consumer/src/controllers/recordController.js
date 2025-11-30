@@ -7,8 +7,6 @@ export const getAllRecordsForVehicle = async (req, res, next) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
 
-  console.log(req.body);
-
   if (!deviceId) {
     return next(new AppError('Please provide a device id', 400));
   }
@@ -16,9 +14,15 @@ export const getAllRecordsForVehicle = async (req, res, next) => {
   let features;
   let totalRecords;
 
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 20;
+  const sort = req.query.sort || '-createdAt';
+
   if (startDate && endDate) {
     features = new APIFeatures(
-      Record.find({ deviceId, timestamp: { $gte: startDate, $lte: endDate } }),
+      Record.find({ deviceId, timestamp: { $gte: startDate, $lte: endDate } }).cache({
+        key: `${deviceId}:${startDate}:${endDate}:${page}:${limit}:${sort}`,
+      }),
       req.query
     )
       .filter()
@@ -31,7 +35,10 @@ export const getAllRecordsForVehicle = async (req, res, next) => {
       timestamp: { $gte: startDate, $lte: endDate },
     });
   } else {
-    features = new APIFeatures(Record.find({ deviceId }), req.query)
+    features = new APIFeatures(
+      Record.find({ deviceId }).cache({ key: `${deviceId}:${page}:${limit}:${sort}` }),
+      req.query
+    )
       .filter()
       .sort()
       .limit()

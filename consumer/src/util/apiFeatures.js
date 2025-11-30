@@ -11,7 +11,7 @@ class APIFeatures {
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
 
-    this.query = this.query.find(JSON.parse(queryStr));
+    this.query = this.query.where(JSON.parse(queryStr));
     return this;
   }
 
@@ -31,7 +31,7 @@ class APIFeatures {
       const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
-      this.query.select('-__v ');
+      this.query = this.query.select('-__v');
     }
 
     return this;
@@ -39,8 +39,10 @@ class APIFeatures {
 
   paginate() {
     const page = Number(this.queryString.page) || 1;
-    const limit = Number(this.queryString.limit) || 100;
+    const limit = Number(this.queryString.limit) || 20;
     const skip = (page - 1) * limit;
+
+    console.log('page and limit', this.queryString.page, this.queryString.limit);
 
     this.query = this.query.skip(skip).limit(limit);
     return this;

@@ -5,8 +5,6 @@ import AppError from '../util/appError.js';
 export const getVehicleHistory = async (req, res, next) => {
   try {
     const deviceId = req.params.deviceId;
-    const startDate = req.query.startDate;
-    const endDate = req.query.endDate;
 
     if (!deviceId) {
       return next(new AppError('Please enter deviceId', 400));
@@ -15,7 +13,7 @@ export const getVehicleHistory = async (req, res, next) => {
     const response = await axios.get(
       `${process.env.CONSUMER_SERVICE_URL}/api/consumer/history/${deviceId}`,
       {
-        params: { startDate, endDate },
+        params: req.query,
       }
     );
 

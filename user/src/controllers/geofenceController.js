@@ -44,7 +44,9 @@ export const createGeofence = async (req, res, next) => {
 };
 
 export const getAllGeofences = async (req, res, next) => {
-  const geofences = await Geofence.find({ user: req.user._id, active: true });
+  const geofences = await Geofence.find({ user: req.user._id, active: true }).cache({
+    key: req.user._id,
+  });
 
   const totalGeofences = await Geofence.countDocuments({ user: req.user._id, active: true });
 
@@ -59,7 +61,7 @@ export const getAllGeofences = async (req, res, next) => {
 };
 
 export const getGeofence = async (req, res, next) => {
-  const geofence = await Geofence.findOne({ _id: req.params.id });
+  const geofence = await Geofence.findOne({ _id: req.params.id }).cache({ key: req.user._id });
 
   if (!geofence) {
     return next(new AppError('No geofence found with this id', 404));

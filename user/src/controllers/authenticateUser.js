@@ -48,6 +48,7 @@ export default async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'User is valide!',
+    message: 'User is valid!',
+    user,
   });
 };

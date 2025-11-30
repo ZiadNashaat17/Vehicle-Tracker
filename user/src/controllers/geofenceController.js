@@ -1,3 +1,5 @@
+import * as turf from '@turf/turf';
+
 import Geofence from '../models/geofenceModel.js';
 import filterObj from '../util/filterObj.js';
 import AppError from '../util/appError.js';
@@ -66,6 +68,64 @@ export const getGeofence = async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     geofence,
+  });
+};
+
+export const checkPointInGeofence = async (req, res, next) => {
+  const { geofenceId, lng, lat } = req.body;
+
+  const geofence = await Geofence.findOne({ _id: geofenceId, user: req.user._id, active: true });
+
+  if (!geofence) {
+    return next(new AppError('No active geofence found with this id', 404));
+  }
+
+  const point = turf.point([lng, lat]);
+  let isInside = false;
+
+  if (geofence.geofence.type === 'Point') {
+    const center = turf.point(geofence.geofence.coordinates);
+    const radius = geofence.geofence.radius; // in meters
+    const distance = turf.distance(point, center, { units: 'meters' });
+    isInside = distance <= radius;
+  } else if (geofence.geofence.type === 'Polygon') {
+    const polygon = turf.polygon(geofence.geofence.coordinates);
+    isInside = turf.booleanPointInPolygon(point, polygon);
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      geofenceId,
+      point: [lng, lat],
+      isInside,
+    },
+  });
+};
+
+export const getGeofenceArea = async (req, res, next) => {
+  const geofence = await Geofence.findOne({ _id: req.params.id, user: req.user._id });
+
+  if (!geofence) {
+    return next(new AppError('No geofence found with this id', 404));
+  }
+
+  let area;
+
+  if (geofence.geofence.type === 'Point') {
+    area = Math.PI * Math.pow(geofence.geofence.radius, 2);
+  } else if (geofence.geofence.type === 'Polygon') {
+    const polygon = turf.polygon(geofence.geofence.coordinates);
+    area = turf.area(polygon);
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      geofenceId: geofence._id,
+      area,
+      unit: 'square meters',
+    },
   });
 };
 

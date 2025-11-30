@@ -607,6 +607,57 @@ export const recoverGeofence = async (req, res, next) => {
   }
 };
 
+export const getGeofenceArea = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const geofenceId = req.params.id;
+
+    const response = await axios.get(
+      `${process.env.USER_SERVICE_URL}/api/geofence/geofence-area/${geofenceId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const checkInsideGeofence = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const { geofenceId, lng, lat } = req.body;
+
+    if (!geofenceId || !lng || !lat) {
+      return next(new AppError('Please enter geofence id, longitude and latitude', 400));
+    }
+
+    const response = await axios.post(
+      `${process.env.USER_SERVICE_URL}/api/geofence/check-inside-geofence`,
+      { geofenceId, lng, lat },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
 export const updateGeofence = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];

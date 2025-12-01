@@ -22,8 +22,6 @@ export default async (req, res, next) => {
 
     console.log('User is authenticated');
 
-    req.user = response.data.user;
-    console.log(req.user);
     next();
   } catch (error) {
     return next(new AppError('Authentication failed. Invalid or expired token.', 401));

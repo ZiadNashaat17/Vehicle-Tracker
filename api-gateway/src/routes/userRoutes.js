@@ -17,6 +17,7 @@ router.get('/get-user', userController.getUser);
 router.patch('/update-user', userController.updateUser);
 router.patch('/change-password', userController.changePassword);
 router.patch('/deactivate-user', userController.deactivateUser);
+router.get('/logout', userController.logout);
 
 // --------------------------------------------------- //
 router.post('/vehicle/create-vehicle', userController.createVehicle);

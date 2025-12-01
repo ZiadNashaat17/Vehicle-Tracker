@@ -44,64 +44,66 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 
 The system follows a microservices architecture with an API Gateway as the single entry point:
 
-````
-┌──────────────┐                                    ┌─────────────────┐
-│   Clients    │                                    │   IoT Devices   │
-│ (Web/Mobile) │                                    │  (GPS Trackers) │
-└──────┬───────┘                                    └────────┬────────┘
-       │ HTTP/WebSocket                                      │ HTTP POST
-       ▼                                                     ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                       API Gateway (Port 5000)                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
-│  │ Auth Routes  │  │Track Routes  │  │History Routes│              │
-│  │ User Routes  │  │   Proxy to   │  │   Proxy to   │              │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │
-└─────────┼──────────────────┼──────────────────┼────────────────────┘
-          │                  │                  │
-          ▼                  ▼                  ▼
-   ┌─────────────┐    ┌─────────────┐   ┌─────────────┐
-   │    User     │    │  Publisher  │   │  Consumer   │
-   │   Service   │    │   Service   │   │   Service   │
-   │ (Port 3000) │    │ (Port 3001) │   │ (Port 3002) │
-   │             │    │             │   │             │
-   │ - Auth/JWT  │    │ - Validate  │   │ - Process   │
-   │ - Vehicles  │    │ - Publish   │   │ - Store     │
-   │ - Devices   │    │   to Queue  │   │ - Notify    │
-   │ - Geofence  │    └──────┬──────┘   └─────┬───┬───┘
-   │ - WebSocket │           │                │   │
-   └──────┬──────┘           ▼                │   │
-          │           ┌──────────────┐        │   │
-          │           │   RabbitMQ   │────────┘   │
-          │           │ Message Queue│            │
-          │           │ (Port 5672)  │            │
-          │           └──────────────┘            │
-          │                                       │
-          │           ┌──────────────┐            │
-          └──────────▶│   MongoDB    │◀───────────┘
-                      │ (Port 27017) │
-                      │ - Users DB   │
-                      │ - Records DB │
-                      └──────────────┘
+```
+           ┌──────────────┐                                    ┌─────────────────┐
+           │   Clients    │                                    │   IoT Devices   │
+           │ (Web/Mobile) │                                    │  (GPS Trackers) │
+           └──────┬───────┘                                    └────────┬────────┘
+                  │ HTTP/WebSocket                                      │ HTTP POST
+                  ▼                                                     ▼
+           ┌────────────────────────────────────────────────────────────────────┐
+           │                       API Gateway (Port 5000)                      │
+           │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
+           │  │ Auth Routes  │  │Track Routes  │  │History Routes│              │
+           │  │ User Routes  │  │   Proxy to   │  │   Proxy to   │              │
+           │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │
+           └─────────┼──────────────────┼──────────────────┼────────────────────┘
+                     │                  │                  │
+                     ▼                  ▼                  ▼
+              ┌─────────────┐    ┌─────────────┐   ┌─────────────┐
+              │    User     │    │  Publisher  │   │  Consumer   │
+              │   Service   │    │   Service   │   │   Service   │
+              │ (Port 3000) │    │ (Port 3001) │   │ (Port 3002) │
+              │             │    │             │   │             │
+              │ - Auth/JWT  │    │ - Validate  │   │ - Process   │
+              │ - Vehicles  │    │ - Publish   │   │ - Store     │
+              │ - Devices   │    │   to Queue  │   │ - Notify    │
+              │ - Geofence  │    └──────┬──────┘   └─────┬───┬───┘
+              │ - WebSocket │           │                │   │
+              └──────┬──────┘           ▼                │   │
+                     │           ┌──────────────┐        │   │
+                     │           │   RabbitMQ   │────────┘   │
+                     │           │ Message Queue│            │
+                     │           │ (Port 5672)  │            │
+                     │           └──────────────┘            │
+                     │                                       │
+                     │           ┌──────────────┐            │
+                     └──────────▶│   MongoDB    │◀───────────┘
+                                 │ (Port 27017) │
+                                 │ - Users DB   │
+                                 │ - Records DB │
+                                 └──────────────┘
 
-          ┌──────────────────────────┐
-          │        Redis             │
-          │     (Port 6379)          │
-          │  - Caching               │
-          │  - Pub/Sub for real-time │
-          └──────────────────────────┘
-                      ▲
-                      │
-            ┌─────────┴──────────┐
-            │                    │
-     Consumer Service      User Service
+                     ┌──────────────────────────┐
+                     │        Redis             │
+                     │     (Port 6379)          │
+                     │  - Caching               │
+                     │  - Pub/Sub for real-time │
+                     └──────────────────────────┘
+                                 ▲
+                                 │
+                       ┌─────────┴──────────┐
+                       │                    │
+                Consumer Service      User Service
 
-                Docker Network: app-network
-         ┌─────────────────────────────────────────────────┐
-         │  All services communicate via Docker networking │
-         │  Health checks ensure proper startup order      │
-         └─────────────────────────────────────────────────┘
-```### Component Responsibilities
+                     Docker Network: app-network
+              ┌─────────────────────────────────────────────────┐
+              │  All services communicate via Docker networking │
+              │  Health checks ensure proper startup order      │
+              └─────────────────────────────────────────────────┘
+```
+
+### Component Responsibilities
 
 - **API Gateway** (Port 5000): Single entry point for all client requests, routes requests to appropriate backend services, handles CORS, rate limiting, and request validation
 - **User Service** (Port 3000): Manages user authentication (JWT), vehicle management, device management, geofencing, live tracking, and WebSocket connections
@@ -147,9 +149,11 @@ The system follows a microservices architecture with an API Gateway as the singl
 Before you begin, ensure you have the following installed:
 
 ### For Docker Deployment (Recommended)
+
 - **Docker** & **Docker Compose**
 
 ### For Local Development
+
 - **Node.js** (v22 or higher)
 - **npm** or **yarn**
 - **MongoDB** (v6 or higher)
@@ -165,6 +169,8 @@ Before you begin, ensure you have the following installed:
    ```bash
    git clone https://github.com/ZiadNashaat17/Vehicle-Tracker.git
    cd Vehicle-Tracker
+   ```
+
 ````
 
 2. **Install dependencies for each service**
@@ -771,3 +777,4 @@ Contributions are welcome! Please follow these steps:
 ---
 
 ⭐ If you find this project useful, please consider giving it a star on GitHub!
+````

@@ -1,5 +1,5 @@
 services:
-  gateway-service:
+  apigateway-service:
     build: ./api-gateway
     container_name: apigateway-service
     ports:

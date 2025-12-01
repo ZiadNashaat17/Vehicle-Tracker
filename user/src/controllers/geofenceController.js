@@ -17,7 +17,9 @@ export const createGeofence = async (req, res, next) => {
     'devices'
   );
 
-  console.log(filteredBody);
+  if (process.env.NODE_ENV?.trim() === 'development') {
+    console.log(filteredBody);
+  }
 
   if (filteredBody.geofence.type === 'Point') {
     if (!Array.isArray(filteredBody.geofence.coordinates) || !filteredBody.geofence.radius) {

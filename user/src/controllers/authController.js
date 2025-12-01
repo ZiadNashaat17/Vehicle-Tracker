@@ -38,9 +38,7 @@ export const register = catchAsync(async (req, res, next) => {
   const verificationToken = await newUser.generateVerificationToken();
   await newUser.save();
 
-  const verifyURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/user/verify-email/${verificationToken}`;
+  const verifyURL = `${process.env.BASE_URL}/api/user/verify-email/${verificationToken}`;
 
   const emailTemplate = `
     <h2>Verify Email Request</h2>
@@ -53,7 +51,9 @@ export const register = catchAsync(async (req, res, next) => {
 
   await sendEmail(newUser.email, 'Verify Email Request', 'Hello', emailTemplate);
 
-  console.log(newUser);
+  if (process.env.NODE_ENV?.trim() === 'development') {
+    console.log(newUser);
+  }
 
   res.status(201).json({
     status: 'success',
@@ -64,14 +64,18 @@ export const register = catchAsync(async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
   const verificationToken = req.params.verifyToken;
 
-  // console.log(verificationToken);
+  if (process.env.NODE_ENV?.trim() === 'development') {
+    console.log(verificationToken);
+  }
 
   const hashedVerificationToken = crypto
     .createHash('sha256')
     .update(verificationToken)
     .digest('hex');
 
-  // console.log({ hashedVerificationToken });
+  if (process.env.NODE_ENV?.trim() === 'development') {
+    console.log({ hashedVerificationToken });
+  }
 
   const user = await User.findOne({
     emailVerificationToken: hashedVerificationToken,

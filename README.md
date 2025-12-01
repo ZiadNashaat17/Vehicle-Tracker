@@ -342,7 +342,7 @@ DATABASE=mongodb://mongo:27017/user
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=90d
+JWT_EXPIRES_IN=30d
 
 # Redis (use service name for Docker, localhost for local)
 REDIS_URL=redis://redis:6379

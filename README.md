@@ -430,7 +430,7 @@ For detailed configuration options, see [GPS Simulator Documentation](docs/GPS_S
 #### Option 2: Manual Testing
 
 1. Open `live-tracking.html` in a browser
-2. Connect to the WebSocket server
+2. Connect to the Socket.io server
 3. Send GPS coordinates via the `/api/v1/track` endpoint
 4. Watch real-time updates on the map
 
@@ -775,7 +775,3 @@ Contributions are welcome! Please follow these steps:
 ---
 
 ⭐ If you find this project useful, please consider giving it a star on GitHub!
-
-```
-
-```

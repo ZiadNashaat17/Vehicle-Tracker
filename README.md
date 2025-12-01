@@ -166,12 +166,10 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the repository**
 
-   ```bash
-   git clone https://github.com/ZiadNashaat17/Vehicle-Tracker.git
-   cd Vehicle-Tracker
-   ```
-
-````
+```bash
+git clone https://github.com/ZiadNashaat17/Vehicle-Tracker.git
+cd Vehicle-Tracker
+```
 
 2. **Install dependencies for each service**
 
@@ -777,4 +775,7 @@ Contributions are welcome! Please follow these steps:
 ---
 
 ⭐ If you find this project useful, please consider giving it a star on GitHub!
-````
+
+```
+
+```

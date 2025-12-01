@@ -7,7 +7,7 @@ const handleCastErrorDB = err => {
 
 const handleDuplicateFieldsDB = err => {
   const value = err.errmsg.match(/"(.*?)"/)[1];
-  const message = `Duplicate key value: ${value}. Please use another value!`;
+  const message = `${value} already exists. Please use another value!`;
   return new AppError(message, 400);
 };
 
@@ -34,7 +34,7 @@ const sendErrorProd = (err, res) => {
       message: err.message,
     });
   } else {
-    console.error('Error!!!!!!', err);
+    console.log('Error!!!!!!', err.message);
 
     res.status(500).json({
       status: 'error',

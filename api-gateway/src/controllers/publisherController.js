@@ -4,15 +4,7 @@ import AppError from '../util/appError.js';
 
 export const trackController = async (req, res, next) => {
   try {
-    const { deviceId, lat, lng, speed, timestamp } = req.body;
-
-    const response = await axios.post(`${process.env.PUBLISHER_SERVICE_URL}/api/track`, {
-      deviceId: deviceId,
-      lat: lat,
-      lng: lng,
-      speed: speed,
-      timestamp: timestamp,
-    });
+    const response = await axios.post(`${process.env.PUBLISHER_SERVICE_URL}/api/track`, req.body);
 
     console.log(response.data);
 

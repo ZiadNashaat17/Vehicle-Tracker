@@ -62,7 +62,9 @@ export const updateDevice = async (req, res, next) => {
 export const deleteDevice = async (req, res, next) => {
   const device = await Device.findOneAndDelete({ _id: req.params.id });
 
-  console.log(device);
+  if (process.env.NODE_ENV?.trim() === 'development') {
+    console.log(device);
+  }
 
   res.status(204).json({
     status: 'success',

@@ -6,15 +6,10 @@ import filterObj from '../util/filterObj.js';
 
 export const register = async (req, res, next) => {
   try {
-    const { email, name, role, password, passwordConfirm } = req.body;
-
-    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/register`, {
-      email,
-      name,
-      role,
-      password,
-      passwordConfirm,
-    });
+    const response = await axios.post(
+      `${process.env.USER_SERVICE_URL}/api/user/register`,
+      req.body
+    );
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -54,6 +49,7 @@ export const login = async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
   try {
     const verificationToken = req.params.token;
+
     const response = await axios.get(
       `${process.env.USER_SERVICE_URL}/api/user/verify-email/${verificationToken}`
     );
@@ -71,10 +67,6 @@ export const verifyEmail = async (req, res, next) => {
 
 export const getUser = async (req, res, next) => {
   try {
-    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
-      return next(new AppError('No token provided. Please log in to get access.', 401));
-    }
-
     const token = req.headers.authorization.split(' ')[1];
 
     const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/get-user`, {
@@ -115,26 +107,17 @@ export const updateUser = async (req, res, next) => {
       }
     }
 
-    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
-      return next(new AppError('No token provided. Please log in to get access.', 401));
-    }
-
     const token = req.headers.authorization.split(' ')[1];
 
     const response = await axios.patch(
       `${process.env.USER_SERVICE_URL}/api/user/update-user`,
-      {
-        name: filteredBody.name,
-        email: filteredBody.email,
-      },
+      filteredBody,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
-
-    console.log(response.data);
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -157,10 +140,6 @@ export const changePassword = async (req, res, next) => {
 
     if (newPassword !== newPasswordConfirm) {
       return next(new AppError('Passwords are not the same!', 400));
-    }
-
-    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
-      return next(new AppError('No token provided. Please log in to get access.', 401));
     }
 
     const token = req.headers.authorization.split(' ')[1];
@@ -247,10 +226,6 @@ export const resetPassword = async (req, res, next) => {
 
 export const deactivateUser = async (req, res, next) => {
   try {
-    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
-      return next(new AppError('No token provided. Please log in to get access.', 401));
-    }
-
     const token = req.headers.authorization.split(' ')[1];
 
     const response = await axios.patch(
@@ -281,6 +256,25 @@ export const reactivateUser = async (req, res, next) => {
     const response = await axios.patch(`${process.env.USER_SERVICE_URL}/api/user/reactivate-user`, {
       email,
       password,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/logout`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     res.status(response.status).json(response.data);

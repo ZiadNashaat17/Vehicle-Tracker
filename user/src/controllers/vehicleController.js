@@ -18,7 +18,9 @@ export const getVehicle = async (req, res, next) => {
   const vehicle = await Vehicle.findOne({
     user: req.user._id,
     plateNumber: req.params.plateNumber,
-  }).populate('user');
+  })
+    .populate('user')
+    .cache({ key: req.user._id });
 
   if (!vehicle) {
     return next(new AppError('No vehicle found with this plate number!!', 404));
@@ -31,7 +33,9 @@ export const getVehicle = async (req, res, next) => {
 };
 
 export const getAllVehicles = async (req, res, next) => {
-  const vehicles = await Vehicle.find({ user: req.user._id }).populate('user'); //get all vehicles belong to certain user
+  const vehicles = await Vehicle.find({ user: req.user._id })
+    .populate('user')
+    .cache({ key: req.user._id }); //get all vehicles belong to certain user
 
   res.status(200).json({
     status: 'success',

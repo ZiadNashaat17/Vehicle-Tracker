@@ -44,7 +44,7 @@ export const register = catchAsync(async (req, res, next) => {
   const verificationToken = await newUser.generateVerificationToken();
   await newUser.save();
 
-  const verifyURL = `${process.env.BASE_URL}/api/user/verify-email/${verificationToken}`;
+  const verifyURL = `${process.env.BASE_URL}api/user/verify-email/${verificationToken}`;
 
   const emailTemplate = `
     <h2>Verify Email Request</h2>

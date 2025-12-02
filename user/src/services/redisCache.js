@@ -34,6 +34,8 @@ mongoose.Query.prototype.exec = async function () {
   }
   const result = await exec.apply(this, arguments);
 
+  console.log('key: ', key);
+
   client.hSet(this.hashKey, key, JSON.stringify(result), 'EX', 300);
 
   return result;

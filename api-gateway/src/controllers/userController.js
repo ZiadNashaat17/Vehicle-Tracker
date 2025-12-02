@@ -315,6 +315,7 @@ export const getAllVehicles = async (req, res, next) => {
 
     const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/vehicle`, {
       headers: { Authorization: `Bearer ${token}` },
+      params: req.query,
     });
 
     res.status(response.status).json(response.data);

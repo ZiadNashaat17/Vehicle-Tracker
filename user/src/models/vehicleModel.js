@@ -26,7 +26,7 @@ const vehicleSchema = new Schema({
     required: true,
     enum: ['Motorcycle', 'Car', 'Truck'],
   },
-  status: { type: String, default: 'off' },
+  status: { type: String, default: 'Off', enum: ['Parking', 'Moving', 'On', 'Off'] },
   lastLocation: {
     type: {
       type: String,

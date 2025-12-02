@@ -1,6 +1,7 @@
 import { updateDeviceVehicle } from './deviceController.js';
 import Vehicle from '../models/vehicleModel.js';
 import AppError from '../util/appError.js';
+import filterObj from '../util/filterObj.js';
 
 export const addNewVehicle = async (req, res, next) => {
   req.body.user = req.user._id;
@@ -33,9 +34,13 @@ export const getVehicle = async (req, res, next) => {
 };
 
 export const getAllVehicles = async (req, res, next) => {
-  const vehicles = await Vehicle.find({ user: req.user._id })
-    .populate('user')
-    .cache({ key: req.user._id }); //get all vehicles belong to certain user
+  const status = req.query.status;
+  const query = { user: req.user._id };
+  if (status) {
+    query.status = status;
+  }
+
+  const vehicles = await Vehicle.find(query).populate('user').cache({ key: req.user._id });
 
   res.status(200).json({
     status: 'success',
@@ -45,7 +50,12 @@ export const getAllVehicles = async (req, res, next) => {
 };
 
 export const updateVehicle = async (req, res, next) => {
-  const vehicle = await Vehicle.findOneAndUpdate({ plateNumber: req.params.plateNumber }, req.body);
+  const filteredBody = filterObj(req.body, 'brand', 'model', 'year', 'type', 'status');
+
+  const vehicle = await Vehicle.findOneAndUpdate(
+    { plateNumber: req.params.plateNumber },
+    filteredBody
+  );
 
   if (!vehicle) {
     return next(new AppError('No vehicle found with this id!', 404));

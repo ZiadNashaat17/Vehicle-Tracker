@@ -21,7 +21,7 @@ router.get('/logout', userController.logout);
 
 // --------------------------------------------------- //
 router.post('/vehicle', userController.createVehicle);
-router.get('/vehicle/', userController.getAllVehicles);
+router.get('/vehicle', userController.getAllVehicles);
 router.get('/vehicle/:plateNumber', userController.getVehicleWithPlateNumber);
 router.patch('/vehicle/:plateNumber', userController.updateVehicle);
 router.delete('/vehicle/:plateNumber', userController.removeVehicle);

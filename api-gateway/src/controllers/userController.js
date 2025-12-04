@@ -560,7 +560,7 @@ export const disableGeofence = async (req, res, next) => {
     const geofenceId = req.params.id;
 
     const response = await axios.patch(
-      `${process.env.USER_SERVICE_URL}/api/geofence/disable-geofence/${geofenceId}`,
+      `${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}/disable`,
       {},
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -584,7 +584,7 @@ export const recoverGeofence = async (req, res, next) => {
     const geofenceId = req.params.id;
 
     const response = await axios.patch(
-      `${process.env.USER_SERVICE_URL}/api/geofence/recover-geofence/${geofenceId}`,
+      `${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}/recover`,
       {},
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -608,7 +608,7 @@ export const getGeofenceArea = async (req, res, next) => {
     const geofenceId = req.params.id;
 
     const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/geofence/geofence-area/${geofenceId}`,
+      `${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}/area`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -635,7 +635,7 @@ export const checkInsideGeofence = async (req, res, next) => {
     }
 
     const response = await axios.post(
-      `${process.env.USER_SERVICE_URL}/api/geofence/check-inside-geofence`,
+      `${process.env.USER_SERVICE_URL}/api/geofence/check-point`,
       { geofenceId, lng, lat },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -659,7 +659,7 @@ export const updateGeofence = async (req, res, next) => {
     const geofenceId = req.params.id;
 
     const response = await axios.patch(
-      `${process.env.USER_SERVICE_URL}/api/geofence/update-geofence/${geofenceId}`,
+      `${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}`,
       req.body,
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -683,7 +683,7 @@ export const deleteGeofence = async (req, res, next) => {
     const geofenceId = req.params.id;
 
     const response = await axios.delete(
-      `${process.env.USER_SERVICE_URL}/api/geofence/delete-geofence/${geofenceId}`,
+      `${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }

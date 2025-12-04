@@ -47,7 +47,7 @@ export default (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  const env = process.env.NODE_ENV.trim();
+  const env = process.env.NODE_ENV?.trim() || 'production';
 
   if (env === 'development') {
     sendErrorDev(err, res);

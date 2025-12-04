@@ -56,3 +56,15 @@ export const getCachedRecord = async deviceId => {
 
   return JSON.parse(record);
 };
+
+export const closeRedis = async function () {
+  try {
+    if (client) {
+      await client.quit();
+      console.log('Redis disconnected');
+    }
+  } catch (error) {
+    console.error('Error closing Redis:', error);
+    throw error;
+  }
+};

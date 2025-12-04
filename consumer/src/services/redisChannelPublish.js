@@ -22,3 +22,15 @@ export async function publishRecord(record) {
   await pubClient.publish('new-record', JSON.stringify(record));
   console.log('Record published to Redis channel:', record);
 }
+
+export const closeRedisPub = async function () {
+  try {
+    if (pubClient) {
+      await pubClient.quit();
+      console.log('Redis disconnected');
+    }
+  } catch (error) {
+    console.error('Error closing Redis:', error);
+    throw error;
+  }
+};

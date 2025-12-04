@@ -4,6 +4,6 @@ import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 
-router.get('/:deviceId', authenticate, getVehicleHistory);
+router.get('/:deviceId/history', authenticate, getVehicleHistory);
 
 export default router;

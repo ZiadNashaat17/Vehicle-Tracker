@@ -55,3 +55,15 @@ export const cacheLatestRecord = async record => {
 
   await client.setEx(key, 3600, JSON.stringify(record));
 };
+
+export const closeRedis = async function () {
+  try {
+    if (client) {
+      await client.quit();
+      console.log('Redis disconnected');
+    }
+  } catch (error) {
+    console.error('Error closing Redis:', error);
+    throw error;
+  }
+};

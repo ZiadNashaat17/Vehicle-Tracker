@@ -3,10 +3,13 @@ import Record from '../models/recordModel.js';
 import { cacheLatestRecord, clearHash } from './cache.js';
 import { publishRecord } from './redisChannelPublish.js';
 
-export default async () => {
+let channel;
+let connection;
+
+export const consumeRabbitMQ = async () => {
   try {
-    const connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://localhost:5672');
-    const channel = await connection.createChannel();
+    connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://localhost:5672');
+    channel = await connection.createChannel();
     const result = await channel.assertQueue('vehicle-tracking');
 
     // // Purge existing messages from the queue
@@ -42,5 +45,21 @@ export default async () => {
     console.log('Waiting for messages...');
   } catch (err) {
     console.error(err);
+  }
+};
+
+export const closeRabbitMQ = async () => {
+  try {
+    if (channel) {
+      await channel.close();
+      console.log('RabbitMQ channel closed');
+    }
+    if (connection) {
+      await connection.close();
+      console.log('RabbitMQ connection closed');
+    }
+  } catch (error) {
+    console.error('Error closing RabbitMQ:', error);
+    throw error;
   }
 };

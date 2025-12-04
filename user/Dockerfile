@@ -2,10 +2,10 @@ FROM node:alpine
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
 RUN npm install --omit=dev
 
 COPY . .
 
-CMD [ "yarn", "start" ]
+CMD [ "npm", "start" ]

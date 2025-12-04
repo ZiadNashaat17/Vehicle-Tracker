@@ -11,7 +11,7 @@ export const getVehicleHistory = async (req, res, next) => {
     }
 
     const response = await axios.get(
-      `${process.env.CONSUMER_SERVICE_URL}/api/consumer/history/${deviceId}`,
+      `${process.env.CONSUMER_SERVICE_URL}/api/consumer/${deviceId}/history`,
       {
         params: req.query,
       }

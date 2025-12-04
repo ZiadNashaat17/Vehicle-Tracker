@@ -1,10 +1,11 @@
 import amqp from 'amqplib';
 
 let channel;
+let connection;
 
 export const connectRabbitMQ = async () => {
   try {
-    const connection = await amqp.connect(process.env.RABBITMQ_URL);
+    connection = await amqp.connect(process.env.RABBITMQ_URL);
 
     channel = await connection.createChannel();
 
@@ -32,6 +33,22 @@ export const publishRecord = async record => {
   } catch (error) {
     console.error('Error publishing to RabbitMQ: ', error);
 
+    throw error;
+  }
+};
+
+export const closeRabbitMQ = async () => {
+  try {
+    if (channel) {
+      await channel.close();
+      console.log('RabbitMQ channel closed');
+    }
+    if (connection) {
+      await connection.close();
+      console.log('RabbitMQ connection closed');
+    }
+  } catch (error) {
+    console.error('Error closing RabbitMQ:', error);
     throw error;
   }
 };

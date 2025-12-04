@@ -18,12 +18,12 @@ const router = Router();
 router.use(authenticate);
 router.post('/', cleanCache, createGeofence);
 router.get('/', getAllGeofences);
+router.post('/check-point', checkPointInGeofence);
 router.get('/:id', getGeofence);
-router.patch('/disable-geofence/:id', cleanCache, disableGeofence);
-router.patch('/recover-geofence/:id', cleanCache, recoverGeofence);
-router.patch('/update-geofence/:id', cleanCache, updateGeofence);
-router.post('/check-inside-geofence', checkPointInGeofence);
-router.get('/geofence-area/:id', getGeofenceArea);
-router.delete('/delete-geofence/:id', cleanCache, deleteGeofence);
+router.get('/:id/area', getGeofenceArea);
+router.patch('/:id', cleanCache, updateGeofence);
+router.patch('/:id/disable', cleanCache, disableGeofence);
+router.patch('/:id/recover', cleanCache, recoverGeofence);
+router.delete('/:id', cleanCache, deleteGeofence);
 
 export default router;

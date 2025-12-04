@@ -14,7 +14,7 @@ router.patch('/reactivate-user', userController.reactivateUser);
 router.get('/authenticate-user', userController.authenticateUser);
 
 router.use(authenticate);
-router.get('/get-user', userController.getUser);
+router.get('/', userController.getUser);
 router.patch('/update-user', userController.updateUser);
 router.patch('/change-password', userController.changePassword);
 router.patch('/deactivate-user', userController.deactivateUser);

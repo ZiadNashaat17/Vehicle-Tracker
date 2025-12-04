@@ -13,14 +13,14 @@ router.patch('/reactivate-user', userController.reactivateUser);
 
 router.use(authenticate);
 
-router.get('/get-user', userController.getUser);
+router.get('/', userController.getUser);
 router.patch('/update-user', userController.updateUser);
 router.patch('/change-password', userController.changePassword);
 router.patch('/deactivate-user', userController.deactivateUser);
 router.get('/logout', userController.logout);
 
 // --------------------------------------------------- //
-router.post('/vehicle/create-vehicle', userController.createVehicle);
+router.post('/vehicle', userController.createVehicle);
 router.get('/vehicle/', userController.getAllVehicles);
 router.get('/vehicle/:plateNumber', userController.getVehicleWithPlateNumber);
 router.patch('/vehicle/:plateNumber', userController.updateVehicle);

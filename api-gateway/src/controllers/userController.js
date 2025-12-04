@@ -69,7 +69,7 @@ export const getUser = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];
 
-    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/get-user`, {
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

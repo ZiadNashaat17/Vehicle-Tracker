@@ -57,10 +57,6 @@ export const register = catchAsync(async (req, res, next) => {
 
   await sendEmail(newUser.email, 'Verify Email Request', 'Hello', emailTemplate);
 
-  if (process.env.NODE_ENV?.trim() === 'development') {
-    console.log(newUser);
-  }
-
   res.status(201).json({
     status: 'success',
     message: 'User registered successfully! Please check your email inbox to verify your email.',

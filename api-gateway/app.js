@@ -28,7 +28,7 @@ if (process.env.NODE_ENV?.trim() === 'development') {
 }
 
 app.use('/api/track', publisherRouter);
-app.use('/api/history', consumerRouter);
+app.use('/api/vehicle', consumerRouter);
 app.use('/api/user', userRouter);
 
 app.disable('x-powered-by');

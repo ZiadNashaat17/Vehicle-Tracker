@@ -1,8 +1,5 @@
-import { config } from 'dotenv';
 import app from './app.js';
-import { connectRabbitMQ, closeRabbitMQ } from './src/services/publishToRabbitMQ.js';
-
-config({ path: './config.env' });
+import { connectRabbitMQ, closeRabbitMQ } from './services/publishToRabbitMQ.js';
 
 const port = process.env.PORT || 3001;
 let server;

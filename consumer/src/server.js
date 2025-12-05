@@ -1,18 +1,11 @@
-import { createServer } from 'http';
-import { config } from 'dotenv';
-import { connect, disconnect } from 'mongoose';
-
 import app from './app.js';
-import { initializeSocket } from './src/services/websocket.js';
-import { initRedisSubscriber } from './src/services/redisChannelSubscribe.js';
-import { closeRedis } from './src/services/redisCache.js';
+import { consumeRabbitMQ } from './services/consumeRabbitMQ.js';
+import { closeRedisPub, initRedisPublisher } from './services/redisChannelPublish.js';
+import { connect, disconnect } from 'mongoose';
+import { closeRedis } from './services/cache.js';
 
-config({ path: './config.env' });
-
-const DB = process.env.DATABASE;
-const port = process.env.PORT || 3000;
-const httpServer = createServer(app);
-let io;
+const port = process.env.PORT || 3002;
+let server;
 
 process.on('uncaughtException', err => {
   console.error('UNCAUGHT EXCEPTION! Shutting down immediately...');
@@ -29,28 +22,27 @@ process.on('unhandledRejection', err => {
 
 (async () => {
   try {
-    await connect(DB);
-    console.log('User service connected to DB successfully!');
+    await connect(process.env.DATABASE);
+    console.log('Consumer connected to DB successfully!');
 
-    io = initializeSocket(httpServer);
+    await consumeRabbitMQ();
+    await initRedisPublisher();
 
-    await initRedisSubscriber(io);
-
-    httpServer.listen(port, () => {
-      console.log(`User service is up and running on port: ${port}`);
+    server = app.listen(port, () => {
+      console.log(`Consumer service is up and running on port: ${port}`);
     });
 
     process.on('SIGTERM', () => {
-      console.log('SIGTERM signal received: closing HTTP server');
+      console.log('SIGTERM signal received: closing server');
       gracefulShutdown();
     });
 
     process.on('SIGINT', () => {
-      console.log('SIGINT signal received: closing HTTP server');
+      console.log('SIGINT signal received: closing server');
       gracefulShutdown();
     });
-  } catch (err) {
-    console.error('User service startup error: ', err);
+  } catch (error) {
+    console.error('Consumer service startup error: ', error);
     process.exit(1);
   }
 })();
@@ -63,20 +55,20 @@ const gracefulShutdown = () => {
     process.exit(1);
   }, 30000);
 
-  if (httpServer) {
-    httpServer.close(err => {
+  if (server) {
+    server.close(err => {
       if (err) {
         console.error('Error closing server: ', err);
         clearTimeout(forceShutdownTimer);
         process.exit(1);
       }
 
-      console.log('HTTP server closed. Closing other resources...');
+      console.log('Server closed. Closing other resources...');
       closeResourcesAndExit(forceShutdownTimer);
     });
 
-    // Immediately close all active connections
-    httpServer.closeAllConnections();
+    // Stop accepting new connections
+    server.closeAllConnections();
   } else {
     closeResourcesAndExit(forceShutdownTimer);
   }
@@ -84,19 +76,15 @@ const gracefulShutdown = () => {
 
 const closeResourcesAndExit = async timer => {
   try {
-    if (io) {
-      console.log('Closing Socket.IO connections...');
-      io.close(() => {
-        console.log('Socket.IO disconnected');
-      });
-    }
-
     console.log('Closing MongoDB connection...');
     await disconnect();
     console.log('MongoDB disconnected');
 
     console.log('Closing Redis connection...');
     await closeRedis();
+
+    console.log('Closing Redis Publisher connection...');
+    await closeRedisPub();
 
     console.log('All resources closed successfully. Exiting.');
     clearTimeout(timer);

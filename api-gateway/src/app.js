@@ -1,14 +1,16 @@
 import express from 'express';
-import morgan from 'morgan';
-import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import { config } from 'dotenv';
 
 config({ path: './config.env' });
 
-import AppError from './src/util/appError.js';
-import globalErrorHandler from './src/middlewares/errorController.js';
-import recordRoutes from './src/routes/recordsRoutes.js';
+import AppError from './util/appError.js';
+import globalErrorHandler from './middlewares/errorController.js';
+import publisherRouter from './routes/publisherRoutes.js';
+import consumerRouter from './routes/consumerRoutes.js';
+import userRouter from './routes/userRoutes.js';
 
 const app = express();
 const limit = rateLimit({
@@ -25,9 +27,11 @@ if (process.env.NODE_ENV?.trim() === 'development') {
   app.use(morgan('dev'));
 }
 
-app.disable('x-powered-by');
+app.use('/api/track', publisherRouter);
+app.use('/api/vehicle', consumerRouter);
+app.use('/api/user', userRouter);
 
-app.use('/api/consumer', recordRoutes);
+app.disable('x-powered-by');
 
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

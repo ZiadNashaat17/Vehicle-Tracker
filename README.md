@@ -13,6 +13,7 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 - [Usage](#-usage)
 - [GPS Data Simulator](#-gps-data-simulator)
 - [API Documentation](#-api-documentation)
+- [Data Models](#️-data-models)
 - [Project Structure](#-project-structure)
 - [Contributing](#-contributing)
 

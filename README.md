@@ -557,9 +557,13 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "name": "Vehicle 001",
+  "brand": "Vehicle brand",
+  "model": "model",
+  "year": "2025",
   "deviceId": "device123",
-  "plateNumber": "ABC-1234"
+  "plateNumber": "ABC-1234",
+  "type": "car",
+  "status": "Off"
 }
 ```
 
@@ -643,6 +647,165 @@ Content-Type: application/json
 }
 ```
 
+## 🗄️ Data Models
+
+The system uses MongoDB with Mongoose for data persistence. Below are the main data models and their relationships.
+
+### Database Architecture
+
+```
+┌─────────────┐         ┌─────────────┐         ┌─────────────┐
+│    User     │────────>│   Vehicle   │────────>│   Device    │
+│  (user DB)  │ 1:N     │  (user DB)  │ 1:1     │  (user DB)  │
+└──────┬──────┘         └─────────────┘         └──────┬──────┘
+       │                                               │
+       │ 1:N                                           │
+       │                                               │ 1:N
+       ▼                                               ▼
+┌─────────────┐                                 ┌─────────────┐
+│  Geofence   │                                 │   Record    │
+│  (user DB)  │                                 │(consumer DB)│
+└─────────────┘                                 └─────────────┘
+```
+
+### User Model
+
+**Database**: `user` (User Service)
+**Collection**: `users`
+
+Stores user account information with authentication and authorization.
+
+| Field                    | Type    | Description                                    |
+| ------------------------ | ------- | ---------------------------------------------- |
+| `name`                   | String  | User's full name (required, trimmed)           |
+| `email`                  | String  | Unique email address (required, lowercase)     |
+| `password`               | String  | Hashed password (bcrypt, min 8 chars)          |
+| `role`                   | String  | User role: `user` or `admin` (default: `user`) |
+| `active`                 | Boolean | Account active status (default: `true`)        |
+| `isVerified`             | Boolean | Email verification status (default: `false`)   |
+| `passwordChangedAt`      | Date    | Timestamp of last password change              |
+| `passwordResetToken`     | String  | Hashed token for password reset                |
+| `passwordResetExpires`   | Date    | Password reset token expiration                |
+| `emailVerificationToken` | String  | Hashed token for email verification            |
+| `emailTokenExpires`      | Date    | Email verification token expiration            |
+
+**Methods**:
+
+- `isPasswordCorrect()` - Verify password with bcrypt
+- `passwordChangedAfter()` - Check if password changed after JWT issued
+- `generateResetToken()` - Create password reset token
+- `generateVerificationToken()` - Create email verification token
+
+**Relationships**:
+
+- One user can have many vehicles
+- One user can have many devices
+- One user can have many geofences
+
+### Vehicle Model
+
+**Database**: `user` (User Service)
+**Collection**: `vehicles`
+
+Represents physical vehicles being tracked.
+
+| Field          | Type     | Description                                         |
+| -------------- | -------- | --------------------------------------------------- |
+| `brand`        | String   | Vehicle manufacturer (required)                     |
+| `model`        | String   | Vehicle model name (required)                       |
+| `year`         | Number   | Manufacturing year (required)                       |
+| `plateNumber`  | String   | Unique license plate (required, indexed)            |
+| `type`         | String   | Vehicle type: `Motorcycle`, `Car`, or `Truck`       |
+| `status`       | String   | Current status: `Parking`, `Moving`, `On`, or `Off` |
+| `deviceId`     | ObjectId | Reference to Device (required, unique)              |
+| `user`         | ObjectId | Reference to User (required)                        |
+| `lastLocation` | GeoJSON  | Last known location (Point with coordinates)        |
+
+**Relationships**:
+
+- Belongs to one User
+- Has one Device (one-to-one)
+
+### Device Model
+
+**Database**: `user` (User Service)
+**Collection**: `devices`
+
+Represents GPS tracking devices.
+
+| Field        | Type     | Description                           |
+| ------------ | -------- | ------------------------------------- |
+| `deviceId`   | String   | Unique device identifier (required)   |
+| `deviceType` | String   | Device model/type (required)          |
+| `status`     | String   | Device status: `active` or `inactive` |
+| `user`       | ObjectId | Reference to User (required)          |
+| `vehicleId`  | ObjectId | Reference to Vehicle (optional)       |
+
+**Relationships**:
+
+- Belongs to one User
+- Can be assigned to one Vehicle (optional)
+- Has many GPS Records
+
+### Geofence Model
+
+**Database**: `user` (User Service)
+**Collection**: `geofences`
+
+Defines geographic boundaries for alerts and monitoring.
+
+| Field       | Type       | Description                                 |
+| ----------- | ---------- | ------------------------------------------- |
+| `name`      | String     | Geofence name (required)                    |
+| `type`      | String     | Geofence type: `Circle` or `Polygon`        |
+| `geofence`  | GeoJSON    | Geographic data (Point/Polygon with coords) |
+| `radius`    | Number     | Radius in meters (for Circle type)          |
+| `color`     | String     | Display color for UI                        |
+| `active`    | Boolean    | Geofence active status (default: `true`)    |
+| `user`      | ObjectId   | Reference to User (required)                |
+| `devices`   | ObjectId[] | Array of Device references                  |
+| `createdAt` | Date       | Creation timestamp (auto)                   |
+| `updatedAt` | Date       | Last update timestamp (auto)                |
+
+**Indexes**:
+
+- `2dsphere` index on `geofence` for geospatial queries
+
+**Relationships**:
+
+- Belongs to one User
+- Can monitor multiple Devices
+
+### Record Model
+
+**Database**: `consumer` (Consumer Service)
+**Collection**: `records`
+
+Stores historical GPS tracking data.
+
+| Field       | Type     | Description                       |
+| ----------- | -------- | --------------------------------- |
+| `deviceId`  | ObjectId | Reference to Device (required)    |
+| `lat`       | Number   | Latitude (-90 to 90, required)    |
+| `lng`       | Number   | Longitude (-180 to 180, required) |
+| `speed`     | Number   | Speed in km/h (required)          |
+| `timestamp` | Date     | Record timestamp (default: now)   |
+
+**Relationships**:
+
+- Belongs to one Device
+
+**Note**: Records are stored in a separate database for scalability and are managed by the Consumer Service.
+
+### Data Flow
+
+1. **User Registration**: Creates `User` document in user database
+2. **Device Creation**: Admin creates `Device`, assigned to a `User`
+3. **Vehicle Setup**: User creates `Vehicle`, linked to a `Device` and `User`
+4. **Geofence Configuration**: User creates `Geofence` for specific `Devices`
+5. **GPS Tracking**: Device sends data → Publisher validates → RabbitMQ → Consumer stores as `Record`
+6. **Live Updates**: Consumer publishes to Redis → User Service streams via WebSocket
+
 ## 📁 Project Structure
 
 ```
@@ -671,11 +834,11 @@ Vehicle-Tracker/
 │   │   │   ├── liveController.js
 │   │   │   ├── userController.js
 │   │   │   └── vehicleController.js
-│   │   ├── models/            # Database models
-│   │   │   ├── deviceModel.js
-│   │   │   ├── geofenceModel.js
-│   │   │   ├── userModel.js
-│   │   │   └── vehicleModel.js
+│   │   ├── models/            # Mongoose database models (MongoDB schemas)
+│   │   │   ├── deviceModel.js      # GPS device model with user/vehicle refs
+│   │   │   ├── geofenceModel.js    # Geographic boundary model with 2dsphere index
+│   │   │   ├── userModel.js        # User auth model with bcrypt & JWT methods
+│   │   │   └── vehicleModel.js     # Vehicle model with device/user relationships
 │   │   ├── routes/            # API routes
 │   │   │   ├── deviceRoutes.js
 │   │   │   ├── geofenceRoutes.js
@@ -721,8 +884,8 @@ Vehicle-Tracker/
 │   │   │   └── recordController.js
 │   │   ├── middlewares/       # Authentication middleware
 │   │   │   └── authenticateUser.js
-│   │   ├── models/           # Record models
-│   │   │   └── recordModel.js
+│   │   ├── models/           # Mongoose database models
+│   │   │   └── recordModel.js      # GPS tracking record model (historical data)
 │   │   ├── routes/           # Consumer routes
 │   │   │   └── recordsRoutes.js
 │   │   ├── services/         # RabbitMQ consumer, Redis pub

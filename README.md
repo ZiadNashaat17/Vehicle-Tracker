@@ -523,6 +523,8 @@ Content-Type: application/json
 }
 ```
 
+**Note**: Registration only accepts `name`, `email`, `password`, and `passwordConfirm` fields. Other fields are filtered out for security. New users are created with `role: 'user'` and `active: true` by default. Only administrators can assign admin roles to users.
+
 #### Verify Email
 
 ```http
@@ -567,6 +569,8 @@ Content-Type: application/json
   "status": "Off"
 }
 ```
+
+**Note**: The `deviceId` required for vehicle creation is provided to users by administrators who manage device registration.
 
 ### Tracking
 
@@ -634,6 +638,8 @@ Authorization: Bearer <token>
 
 ### Devices (Admin Only)
 
+**Note**: All device management endpoints are restricted to administrators only. Regular users cannot create, update, or delete devices. Device IDs are provided to users by admins for vehicle registration.
+
 #### Create Device
 
 ```http
@@ -676,19 +682,19 @@ The system uses MongoDB with Mongoose for data persistence. Below are the main d
 
 Stores user account information with authentication and authorization.
 
-| Field                    | Type    | Description                                    |
-| ------------------------ | ------- | ---------------------------------------------- |
-| `name`                   | String  | User's full name (required, trimmed)           |
-| `email`                  | String  | Unique email address (required, lowercase)     |
-| `password`               | String  | Hashed password (bcrypt, min 8 chars)          |
-| `role`                   | String  | User role: `user` or `admin` (default: `user`) |
-| `active`                 | Boolean | Account active status (default: `true`)        |
-| `isVerified`             | Boolean | Email verification status (default: `false`)   |
-| `passwordChangedAt`      | Date    | Timestamp of last password change              |
-| `passwordResetToken`     | String  | Hashed token for password reset                |
-| `passwordResetExpires`   | Date    | Password reset token expiration                |
-| `emailVerificationToken` | String  | Hashed token for email verification            |
-| `emailTokenExpires`      | Date    | Email verification token expiration            |
+| Field                    | Type    | Description                                                              |
+| ------------------------ | ------- | ------------------------------------------------------------------------ |
+| `name`                   | String  | User's full name (required, trimmed)                                     |
+| `email`                  | String  | Unique email address (required, lowercase)                               |
+| `password`               | String  | Hashed password (bcrypt, min 8 chars)                                    |
+| `role`                   | String  | User role: `user` or `admin` (default: `user`, admin-only modification) |
+| `active`                 | Boolean | Account status (default: `true`, becomes `false` when user deactivates)  |
+| `isVerified`             | Boolean | Email verification status (default: `false`)                             |
+| `passwordChangedAt`      | Date    | Timestamp of last password change               |
+| `passwordResetToken`     | String  | Hashed token for password reset                 |
+| `passwordResetExpires`   | Date    | Password reset token expiration                 |
+| `emailVerificationToken` | String  | Hashed token for email verification             |
+| `emailTokenExpires`      | Date    | Email verification token expiration             |
 
 **Methods**:
 
@@ -697,10 +703,16 @@ Stores user account information with authentication and authorization.
 - `generateResetToken()` - Create password reset token
 - `generateVerificationToken()` - Create email verification token
 
+**Security Notes**:
+
+- Registration filters request body to only accept: `name`, `email`, `password`, `passwordConfirm`
+- `role` field can only be modified by administrators
+- `active` is `true` by default on registration and becomes `false` when user deactivates their account
+
 **Relationships**:
 
 - One user can have many vehicles
-- One user can have many devices
+- One user can have many devices (Admin only)
 - One user can have many geofences
 
 ### Vehicle Model
@@ -741,6 +753,11 @@ Represents GPS tracking devices.
 | `status`     | String   | Device status: `active` or `inactive` |
 | `user`       | ObjectId | Reference to User (required)          |
 | `vehicleId`  | ObjectId | Reference to Vehicle (optional)       |
+
+**Access Control**:
+
+- All device management operations (create, update, delete) are restricted to administrators
+- Regular users receive device IDs from admins to register their vehicles
 
 **Relationships**:
 

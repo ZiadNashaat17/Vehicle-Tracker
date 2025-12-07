@@ -96,6 +96,10 @@ export const updateVehicleLastLocation = async record => {
     coordinates: [record.lng, record.lat],
   };
 
+  vehicle.status = 'Moving';
+
   await vehicle.save();
   console.log(`Updated vehicle ${vehicle.plateNumber} location to [${record.lng}, ${record.lat}]`);
+
+  return vehicle.user;
 };

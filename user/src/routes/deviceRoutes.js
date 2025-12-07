@@ -7,15 +7,16 @@ import {
   updateDevice,
 } from '../controllers/deviceController.js';
 import authenticate from '../middlewares/authenticate.js';
-import authorize from '../middlewares/authorize.js';
+import cleanCache from '../middlewares/cleanCache.js';
 
 const router = Router();
 
-router.use(authenticate, authorize('admin'));
+router.use(authenticate);
+
+router.post('/', cleanCache, createDevice);
 router.get('/', getAllDevices);
-router.get('/:id', getDevice);
-router.post('/', createDevice);
-router.patch('/:id', updateDevice);
-router.delete('/:id', deleteDevice);
+router.get('/:plateNumber', getDevice);
+router.patch('/:plateNumber', cleanCache, updateDevice);
+router.delete('/:plateNumber', cleanCache, deleteDevice);
 
 export default router;

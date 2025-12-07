@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { getVehicleHistory } from '../controllers/consumerController.js';
+import { getDeviceHistory } from '../controllers/consumerController.js';
 import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 
-router.get('/:deviceId/history', authenticate, getVehicleHistory);
+router.get('/:deviceId/history', authenticate, getDeviceHistory);
 
 export default router;

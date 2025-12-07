@@ -2,7 +2,7 @@ import Record from '../models/recordModel.js';
 import AppError from '../util/appError.js';
 import APIFeatures from '../util/apiFeatures.js';
 
-export const getAllRecordsForVehicle = async (req, res, next) => {
+export const getDeviceRecords = async (req, res, next) => {
   const deviceId = req.params.deviceId;
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
@@ -11,43 +11,52 @@ export const getAllRecordsForVehicle = async (req, res, next) => {
     return next(new AppError('Please provide a device id', 400));
   }
 
-  let features;
-  let totalRecords;
-
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 20;
-  const sort = req.query.sort || '-createdAt';
-
+  const query = { deviceId: deviceId };
   if (startDate && endDate) {
-    features = new APIFeatures(
-      Record.find({ deviceId, timestamp: { $gte: startDate, $lte: endDate } }).cache({
-        key: `${deviceId}:${startDate}:${endDate}:${page}:${limit}:${sort}`,
-      }),
-      req.query
-    )
-      .filter()
-      .sort()
-      .limit()
-      .paginate();
-
-    totalRecords = await Record.countDocuments({
-      deviceId,
-      timestamp: { $gte: startDate, $lte: endDate },
-    });
-  } else {
-    features = new APIFeatures(
-      Record.find({ deviceId }).cache({ key: `${deviceId}:${page}:${limit}:${sort}` }),
-      req.query
-    )
-      .filter()
-      .sort()
-      .limit()
-      .paginate();
-
-    totalRecords = await Record.countDocuments({ deviceId });
+    query.timestamp = { $gte: startDate, $lte: endDate };
+  } else if (startDate) {
+    query.timestamp = { $gte: startDate };
+  } else if (endDate) {
+    query.timestamp = { $lte: endDate };
   }
 
+  const features = new APIFeatures(Record.find(query).cache({ key: deviceId }), req.query)
+    .filter()
+    .limit()
+    .sort()
+    .paginate();
+
+  // let features;
+  // let totalRecords;
+
+  // if (startDate && endDate) {
+  //   features = new APIFeatures(
+  //     Record.find({ deviceId, timestamp: { $gte: startDate, $lte: endDate } }).cache({
+  //       key: deviceId,
+  //     }),
+  //     req.query
+  //   )
+  //     .filter()
+  //     .sort()
+  //     .limit()
+  //     .paginate();
+
+  //   totalRecords = await Record.countDocuments({
+  //     deviceId,
+  //     timestamp: { $gte: startDate, $lte: endDate },
+  //   });
+  // } else {
+  //   features = new APIFeatures(Record.find({ deviceId }).cache({ key: deviceId }), req.query)
+  //     .filter()
+  //     .sort()
+  //     .limit()
+  //     .paginate();
+
+  //   totalRecords = await Record.countDocuments({ deviceId });
+  // }
+
   const records = await features.query;
+  const totalRecords = records.length;
 
   res.status(200).json({
     status: 'success',

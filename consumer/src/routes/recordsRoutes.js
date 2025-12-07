@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { getAllRecordsForVehicle } from '../controllers/recordController.js';
+import { getDeviceRecords } from '../controllers/recordController.js';
 
 const router = Router();
 
-router.get('/:deviceId/history', getAllRecordsForVehicle);
+router.get('/:deviceId/history', getDeviceRecords);
 
 export default router;

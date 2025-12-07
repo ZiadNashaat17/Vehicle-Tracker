@@ -9,9 +9,9 @@ config({ path: './config.env' });
 
 import AppError from './util/appError.js';
 import globalErrorHandler from './middlewares/errorController.js';
+
 import userRouter from './routes/userRoutes.js';
 import deviceRouter from './routes/deviceRoutes.js';
-import vehicleRouter from './routes/vehicleRoutes.js';
 import geofenceRouter from './routes/geofenceRoutes.js';
 import liveRouter from './routes/liveRoutes.js';
 
@@ -34,7 +34,6 @@ if (process.env.NODE_ENV.trim() === 'development') {
 app.disable('x-powered-by');
 
 app.use('/api/user', userRouter);
-app.use('/api/vehicle', vehicleRouter);
 app.use('/api/device', deviceRouter);
 app.use('/api/geofence', geofenceRouter);
 app.use('/api/live', liveRouter);

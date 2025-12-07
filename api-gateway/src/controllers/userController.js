@@ -290,135 +290,11 @@ export const logout = async (req, res, next) => {
 
 // --------------------------------------------------- //
 
-export const createVehicle = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-
-    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/vehicle`, req.body, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error?.response?.data?.message || 'Request failed',
-        error?.response?.status || 500
-      )
-    );
-  }
-};
-
-export const getAllVehicles = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-
-    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/vehicle`, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: req.query,
-    });
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error?.response?.data?.message || 'Request failed',
-        error?.response?.status || 500
-      )
-    );
-  }
-};
-
-export const getVehicleWithPlateNumber = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const plateNumber = req.params.plateNumber;
-
-    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/vehicle/${plateNumber}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error?.response?.data?.message || 'Request failed',
-        error?.response?.status || 500
-      )
-    );
-  }
-};
-
-export const updateVehicle = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const plateNumber = req.params.plateNumber;
-
-    const response = await axios.patch(
-      `${process.env.USER_SERVICE_URL}/api/vehicle/${plateNumber}`,
-      req.body,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error?.response?.data?.message || 'Request failed',
-        error?.response?.status || 500
-      )
-    );
-  }
-};
-
-export const removeVehicle = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const plateNumber = req.params.plateNumber;
-
-    const response = await axios.delete(
-      `${process.env.USER_SERVICE_URL}/api/vehicle/${plateNumber}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error?.response?.data?.message || 'Request failed',
-        error?.response?.status || 500
-      )
-    );
-  }
-};
-
-// --------------------------------------------------- //
-
 export const createDevice = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];
 
     const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/device`, req.body, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error?.response?.data?.message || 'Request failed',
-        error?.response?.status || 500
-      )
-    );
-  }
-};
-
-export const getDevice = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const deviceId = req.params.deviceId;
-
-    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device/${deviceId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -439,6 +315,27 @@ export const getAllDevices = async (req, res, next) => {
 
     const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device`, {
       headers: { Authorization: `Bearer ${token}` },
+      params: req.query,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Request failed',
+        error?.response?.status || 500
+      )
+    );
+  }
+};
+
+export const getDeviceWithPlateNumber = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const plateNumber = req.params.plateNumber;
+
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device/${plateNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     res.status(response.status).json(response.data);
@@ -455,10 +352,10 @@ export const getAllDevices = async (req, res, next) => {
 export const updateDevice = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];
-    const deviceId = req.params.deviceId;
+    const plateNumber = req.params.plateNumber;
 
     const response = await axios.patch(
-      `${process.env.USER_SERVICE_URL}/api/device/${deviceId}`,
+      `${process.env.USER_SERVICE_URL}/api/device/${plateNumber}`,
       req.body,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -477,11 +374,12 @@ export const updateDevice = async (req, res, next) => {
 export const deleteDevice = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];
-    const deviceId = req.params.deviceId;
+    const plateNumber = req.params.plateNumber;
 
-    const response = await axios.delete(`${process.env.USER_SERVICE_URL}/api/device/${deviceId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.delete(
+      `${process.env.USER_SERVICE_URL}/api/device/${plateNumber}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
     res.status(response.status).json(response.data);
   } catch (error) {

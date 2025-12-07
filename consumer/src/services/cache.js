@@ -11,7 +11,7 @@ await client.connect();
 
 mongoose.Query.prototype.cache = function (options = {}) {
   this.useCache = true;
-  this.cacheKey = options.key || '';
+  this.cacheKey = JSON.stringify(options.key) || '';
 
   return this;
 };
@@ -21,7 +21,11 @@ mongoose.Query.prototype.exec = async function () {
     return exec.apply(this, arguments);
   }
 
-  const key = `cache:${this.cacheKey}`;
+  const key = `cache:${this.cacheKey}:${JSON.stringify(
+    Object.assign({}, this.getQuery(), {
+      collection: this.mongooseCollection.name,
+    })
+  )}`;
 
   const cacheValue = await client.get(key);
   if (cacheValue) {
@@ -41,7 +45,7 @@ mongoose.Query.prototype.exec = async function () {
 
 export const clearHash = async function (deviceId) {
   // Delete all cache keys that start with this deviceId
-  const pattern = `cache:${deviceId}:*`;
+  const pattern = `cache:${JSON.stringify(deviceId)}:*`;
   const keys = await client.keys(pattern);
 
   if (keys.length > 0) {

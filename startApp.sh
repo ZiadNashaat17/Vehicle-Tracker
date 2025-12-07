@@ -1,4 +1,6 @@
 #!/bin/bash
+# To run this file open the terminal from the project folder and type: bash startApp.sh
+
 
 echo "========================================="
 echo "Vehicle Tracker - Starting All Services"

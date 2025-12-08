@@ -88,7 +88,10 @@ export const updateDeviceLastLocation = async record => {
   }
 
   device.lastLocation = { type: 'Point', coordinates: [record.lng, record.lat] };
-  if (record.speed > 0) device.status = 'Moving';
+  // if (record.speed > 0) device.status = 'Moving';
+
+  device.status = record.status ? record.status : record.speed > 0 ? 'Moving' : 'Parking';
+
   device.speed = record.speed;
 
   await device.save();

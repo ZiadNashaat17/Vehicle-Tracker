@@ -20,7 +20,7 @@ const deviceSchema = new Schema({
     required: true,
     enum: ['Motorcycle', 'Car', 'Truck'],
   },
-  status: { type: String, default: 'Idling', enum: ['Parking', 'Moving', 'Idling', 'Towed'] },
+  status: { type: String, default: 'Parking', enum: ['Parking', 'Moving', 'Idling', 'Towed'] },
   speed: { type: Number, default: 0 },
   lastLocation: {
     type: {

@@ -26,35 +26,6 @@ export const getDeviceRecords = async (req, res, next) => {
     .sort()
     .paginate();
 
-  // let features;
-  // let totalRecords;
-
-  // if (startDate && endDate) {
-  //   features = new APIFeatures(
-  //     Record.find({ deviceId, timestamp: { $gte: startDate, $lte: endDate } }).cache({
-  //       key: deviceId,
-  //     }),
-  //     req.query
-  //   )
-  //     .filter()
-  //     .sort()
-  //     .limit()
-  //     .paginate();
-
-  //   totalRecords = await Record.countDocuments({
-  //     deviceId,
-  //     timestamp: { $gte: startDate, $lte: endDate },
-  //   });
-  // } else {
-  //   features = new APIFeatures(Record.find({ deviceId }).cache({ key: deviceId }), req.query)
-  //     .filter()
-  //     .sort()
-  //     .limit()
-  //     .paginate();
-
-  //   totalRecords = await Record.countDocuments({ deviceId });
-  // }
-
   const records = await features.query;
   const totalRecords = records.length;
 

@@ -702,17 +702,17 @@ Stores user account information with authentication and authorization.
 
 Represents physical vehicles/devices being tracked. Combines vehicle and GPS device information.
 
-| Field          | Type     | Description                                                                   |
-| -------------- | -------- | ----------------------------------------------------------------------------- |
-| `brand`        | String   | Vehicle manufacturer (required)                                               |
-| `model`        | String   | Vehicle model name (required)                                                 |
-| `year`         | Number   | Manufacturing year (required)                                                 |
-| `plateNumber`  | String   | Unique license plate (required, indexed, unique)                              |
-| `type`         | String   | Vehicle type: `Motorcycle`, `Car`, or `Truck` (required)                      |
-| `status`       | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` (default: `Idling`) |
-| `speed`        | Number   | Current speed in km/h (default: 0)                                            |
-| `user`         | ObjectId | Reference to User (required)                                                  |
-| `lastLocation` | GeoJSON  | Last known location (Point with coordinates, default: [0, 0])                 |
+| Field          | Type     | Description                                                                    |
+| -------------- | -------- | ------------------------------------------------------------------------------ |
+| `brand`        | String   | Vehicle manufacturer (required)                                                |
+| `model`        | String   | Vehicle model name (required)                                                  |
+| `year`         | Number   | Manufacturing year (required)                                                  |
+| `plateNumber`  | String   | Unique license plate (required, indexed, unique)                               |
+| `type`         | String   | Vehicle type: `Motorcycle`, `Car`, or `Truck` (required)                       |
+| `status`       | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` (default: `Parking`) |
+| `speed`        | Number   | Current speed in km/h (default: 0)                                             |
+| `user`         | ObjectId | Reference to User (required)                                                   |
+| `lastLocation` | GeoJSON  | Last known location (Point with coordinates, default: [0, 0])                  |
 
 **Relationships**:
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import AppError from '../util/appError.js';
 
-export const getVehicleHistory = async (req, res, next) => {
+export const getDeviceHistory = async (req, res, next) => {
   try {
     const deviceId = req.params.deviceId;
 

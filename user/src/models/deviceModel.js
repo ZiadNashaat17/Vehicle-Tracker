@@ -1,28 +1,37 @@
 import { Schema, model } from 'mongoose';
 
 const deviceSchema = new Schema({
-  vehicleId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Vehicle',
-  },
+  brand: { type: String, required: true },
+  model: { type: String, required: true },
+  year: { type: Number, required: true },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  deviceType: {
-    type: String,
-    required: true,
-  },
-  deviceId: {
+  plateNumber: {
     type: String,
     required: true,
     unique: true,
+    index: true,
   },
-  status: {
+  type: {
     type: String,
-    enum: ['active', 'inactive'],
-    default: 'inactive',
+    required: true,
+    enum: ['Motorcycle', 'Car', 'Truck'],
+  },
+  status: { type: String, default: 'Idling', enum: ['Parking', 'Moving', 'Idling', 'Towed'] },
+  speed: { type: Number, default: 0 },
+  lastLocation: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point',
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0],
+    },
   },
 });
 

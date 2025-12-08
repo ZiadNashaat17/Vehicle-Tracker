@@ -8,6 +8,7 @@ config({ path: './config.env' });
 
 import AppError from './util/appError.js';
 import globalErrorHandler from './middlewares/errorController.js';
+
 import recordRoutes from './routes/recordsRoutes.js';
 
 const app = express();

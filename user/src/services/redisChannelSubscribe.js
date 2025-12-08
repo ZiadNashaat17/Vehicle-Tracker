@@ -1,6 +1,6 @@
 import { createClient } from 'redis';
 
-import { updateVehicleLastLocation } from '../controllers/vehicleController.js';
+import { updateDeviceLastLocation } from '../controllers/deviceController.js';
 import { clearHash } from './redisCache.js';
 
 let subClient;
@@ -16,7 +16,7 @@ export async function initRedisSubscriber(io) {
     const record = JSON.parse(message);
     console.log('User received record from consumer:', record);
 
-    const userId = await updateVehicleLastLocation(record);
+    const userId = await updateDeviceLastLocation(record);
 
     console.log('Cleaning hash: ', userId);
     clearHash(userId);

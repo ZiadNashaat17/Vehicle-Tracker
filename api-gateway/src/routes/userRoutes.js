@@ -20,18 +20,11 @@ router.patch('/deactivate-user', userController.deactivateUser);
 router.get('/logout', userController.logout);
 
 // --------------------------------------------------- //
-router.post('/vehicle', userController.createVehicle);
-router.get('/vehicle', userController.getAllVehicles);
-router.get('/vehicle/:plateNumber', userController.getVehicleWithPlateNumber);
-router.patch('/vehicle/:plateNumber', userController.updateVehicle);
-router.delete('/vehicle/:plateNumber', userController.removeVehicle);
-
-// --------------------------------------------------- //
 router.post('/device', userController.createDevice);
 router.get('/device', userController.getAllDevices);
-router.get('/device/:deviceId', userController.getDevice);
-router.patch('/device/:deviceId', userController.updateDevice);
-router.delete('/device/:deviceId', userController.deleteDevice);
+router.get('/device/:plateNumber', userController.getDeviceWithPlateNumber);
+router.patch('/device/:plateNumber', userController.updateDevice);
+router.delete('/device/:plateNumber', userController.deleteDevice);
 
 // --------------------------------------------------- //
 router.post('/geofence', userController.createGeofence);

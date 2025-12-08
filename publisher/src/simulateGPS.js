@@ -1,15 +1,15 @@
 import axios from 'axios';
 
 /**
- * Multiple Vehicle GPS Simulator
- * Simulates multiple vehicles with different routes
+ * Multiple Device GPS Simulator
+ * Simulates multiple devices with different routes
  */
 
 const API_URL = 'http://localhost:5000/api/track';
 const UPDATE_INTERVAL = 3000; // 3 seconds
 
-// Define multiple vehicles with different routes
-const VEHICLES = [
+// Define multiple devices with different routes
+const DEVICES = [
   {
     deviceId: '6926f323edd81b0296c62b7e',
     route: [
@@ -32,11 +32,11 @@ const VEHICLES = [
   // },
 ];
 
-class VehicleSimulator {
-  constructor(vehicle) {
-    this.deviceId = vehicle.deviceId;
-    this.route = vehicle.route;
-    this.baseSpeed = vehicle.speed;
+class DeviceSimulator {
+  constructor(device) {
+    this.deviceId = device.deviceId;
+    this.route = device.route;
+    this.baseSpeed = device.speed;
     this.currentIndex = 0;
     this.progress = 0;
   }
@@ -88,16 +88,16 @@ class VehicleSimulator {
   }
 }
 
-// Create simulators for all vehicles
-const simulators = VEHICLES.map(vehicle => new VehicleSimulator(vehicle));
+// Create simulators for all devices
+const simulators = DEVICES.map(device => new DeviceSimulator(device));
 
-console.log('🚀 Starting Multi-Vehicle GPS Simulator...');
-console.log(`📡 Simulating ${VEHICLES.length} vehicles`);
+console.log('🚀 Starting Multi-Device GPS Simulator...');
+console.log(`📡 Simulating ${DEVICES.length} devices`);
 console.log(`🎯 API Endpoint: ${API_URL}`);
 console.log(`⏱️  Update Interval: ${UPDATE_INTERVAL}ms`);
 console.log('');
 
-// Send data for all vehicles
+// Send data for all devices
 const sendAllData = async () => {
   const timestamp = new Date().toLocaleTimeString();
   console.log(`\n⏰ [${timestamp}]`);

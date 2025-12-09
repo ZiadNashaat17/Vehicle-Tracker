@@ -214,7 +214,7 @@ export const deleteGeofence = async (req, res, next) => {
 
   res.status(204).json({
     status: 'success',
-    message: 'Geofence permantly deleted successfully',
+    message: 'Geofence permanently deleted successfully',
     data: null,
   });
 };

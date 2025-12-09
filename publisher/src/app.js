@@ -25,6 +25,8 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+app.set('trust proxy', 1);
+
 app.disable('x-powered-by');
 
 app.use('/api/track', trackRouter);

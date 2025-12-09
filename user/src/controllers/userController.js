@@ -331,35 +331,45 @@ export const resetPassword = async (req, res, next) => {
 };
 
 export const authenticateUser = async (req, res, next) => {
-  let token;
+  try {
+    let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token || token.trim() === '') {
+      return next(new AppError('Please provide a valid authentication token!', 401));
+    }
+
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ _id: decoded.id });
+
+    if (!user) {
+      return next(new AppError('User no longer exists!', 401));
+    }
+
+    if (user.passwordChangedAfter(decoded.iat)) {
+      return next(new AppError('Password changed after token was issued!', 401));
+    }
+
+    if (!user.isVerified) {
+      return next(new AppError('This user is not verified!', 401));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'User is authenticated!',
+    });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return next(new AppError('Invalid token. Please log in again.', 401));
+    }
+    if (error.name === 'TokenExpiredError') {
+      return next(new AppError('Your token has expired. Please log in again.', 401));
+    }
+    return next(error);
   }
-
-  if (!token) {
-    return next(new AppError('User not valid!', 401));
-  }
-
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  const user = await User.findOne({ _id: decoded.id });
-
-  if (!user) {
-    return next(new AppError('User no longer exists!', 401));
-  }
-
-  if (user.passwordChangedAfter(decoded.iat)) {
-    return next(new AppError('Password changed after token was issued!', 401));
-  }
-
-  if (!user.isVerified) {
-    return next(new AppError('This user is not verified!', 401));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'User is authenticated!',
-  });
 };
 
 export const logout = async (req, res, next) => {

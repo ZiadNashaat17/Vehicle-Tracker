@@ -31,6 +31,8 @@ app.use('/api/track', publisherRouter);
 app.use('/api/device', consumerRouter);
 app.use('/api/user', userRouter);
 
+app.set('trust proxy', 1);
+
 app.disable('x-powered-by');
 
 app.use((req, res, next) => {

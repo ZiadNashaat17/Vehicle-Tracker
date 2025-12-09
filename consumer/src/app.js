@@ -26,6 +26,8 @@ if (process.env.NODE_ENV?.trim() === 'development') {
   app.use(morgan('dev'));
 }
 
+app.set('trust proxy', 1);
+
 app.disable('x-powered-by');
 
 app.use('/api/consumer', recordRoutes);

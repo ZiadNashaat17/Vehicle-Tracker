@@ -22,18 +22,37 @@ export const createGeofence = async (req, res, next) => {
   }
 
   if (filteredBody.geofence.type === 'Point') {
-    if (!Array.isArray(filteredBody.geofence.coordinates) || !filteredBody.geofence.radius) {
-      return next(new AppError('Circle must have center point and radius!', 400));
+    if (
+      !Array.isArray(filteredBody.geofence.coordinates) ||
+      filteredBody.geofence.coordinates[0].length !== 2 ||
+      !filteredBody.geofence.radius ||
+      filteredBody.geofence.radius < 10 ||
+      filteredBody.geofence.radius > 10000
+    ) {
+      return next(
+        new AppError(
+          'Circle geofence must have center point (a point must include exactly two values) and radius. Radius must be between 10 and 10,000 meters',
+          400
+        )
+      );
     }
   } else if (filteredBody.geofence.type === 'Polygon') {
     if (
-      !Array.isArray(filteredBody.geofence.coordinates) ||
       !Array.isArray(filteredBody.geofence.coordinates[0]) ||
+      filteredBody.geofence.coordinates[0].some(
+        point => !Array.isArray(point) || point.length !== 2
+      ) ||
       filteredBody.geofence.coordinates[0].length < 3
     ) {
-      return next(
-        new AppError('Polygon must have at least 4 points (first and last must be the same)', 400)
-      );
+      return next(new AppError('Polygon geofence must have at least 3 points', 400));
+    }
+
+    const ring = filteredBody.geofence.coordinates[0];
+    const firstPoint = ring[0];
+    const lastPoint = ring[ring.length - 1];
+
+    if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
+      filteredBody.geofence.coordinates[0].push(firstPoint);
     }
   }
 
@@ -50,11 +69,9 @@ export const getAllGeofences = async (req, res, next) => {
     key: req.user._id,
   });
 
-  const totalGeofences = await Geofence.countDocuments({ user: req.user._id, active: true });
-
   res.status(200).json({
     status: 'success',
-    total: totalGeofences,
+    total: geofences.length,
     data: {
       user: req.user._id,
       geofences,

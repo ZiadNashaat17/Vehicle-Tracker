@@ -24,6 +24,11 @@ export default async (req, res, next) => {
 
     next();
   } catch (error) {
-    return next(new AppError('Authentication failed. Invalid or expired token.', 401));
+    return next(
+      new AppError(
+        error?.response?.data?.message || 'Not authenticated',
+        error?.response?.status || 401
+      )
+    );
   }
 };

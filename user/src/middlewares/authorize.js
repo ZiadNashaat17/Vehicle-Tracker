@@ -1,11 +1,17 @@
 import AppError from '../util/appError.js';
 
-export default (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(new AppError('You do not have presmission to perform this action.', 403));
-    }
+export const authorizeUser = (req, res, next) => {
+  if (req.user.role !== 'User') {
+    return next(new AppError('You do not have permission to perform this action.', 403));
+  }
 
-    next();
-  };
+  next();
+};
+
+export const authorizeAdmin = (req, res, next) => {
+  if (req.user.role !== 'Admin') {
+    return next(new AppError('You do not have permission to perform this action.', 403));
+  }
+
+  next();
 };

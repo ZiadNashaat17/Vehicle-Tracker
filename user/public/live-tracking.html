@@ -192,7 +192,7 @@
           console.error('Login error:', error);
           statusDiv.textContent = 'Login failed';
           statusDiv.className = 'disconnected';
-          alert('Login failed: ' + error.message);
+          alert(`Login failed: ${error.message}`);
           loginBtn.disabled = false;
         }
       }
@@ -292,9 +292,9 @@
           statusDiv.className = 'connected';
         } catch (error) {
           console.error('Error:', error);
-          statusDiv.textContent = 'Error: ' + error.message;
+          statusDiv.textContent = `Error: ${error.message}`;
           statusDiv.className = 'disconnected';
-          alert('Error: ' + error.message + '\n\nCheck console (F12) for details.');
+          alert(`Error: ${error.message}\n\nCheck console (F12) for details.`);
           startBtn.disabled = false;
         }
       }

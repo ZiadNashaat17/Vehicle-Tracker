@@ -1,43 +1,43 @@
-import { Router } from 'express';
-import * as userController from '../controllers/userController.js';
-import authenticate from '../middlewares/authenticate.js';
+import { Router } from "express";
+import * as userController from "../controllers/userController.js";
+import authenticate from "../middlewares/authenticate.js";
 
 const router = Router();
 
-router.post('/register', userController.register);
-router.post('/login', userController.login);
-router.get('/verify-email/:token', userController.verifyEmail);
-router.post('/forgot-password', userController.forgotPassword);
-router.patch('/reset-password/:token', userController.resetPassword);
-router.patch('/reactivate-user', userController.reactivateUser);
+router.post("/register", userController.register);
+router.post("/login", userController.login);
+router.get("/verify-email/:token", userController.verifyEmail);
+router.post("/forgot-password", userController.forgotPassword);
+router.patch("/reset-password/:token", userController.resetPassword);
+router.patch("/reactivate-user", userController.reactivateUser);
 
 router.use(authenticate);
 
-router.get('/', userController.getUser);
-router.patch('/update-user', userController.updateUser);
-router.patch('/change-password', userController.changePassword);
-router.patch('/deactivate-user', userController.deactivateUser);
-router.get('/logout', userController.logout);
+router.get("/", userController.getUser);
+router.patch("/update-user", userController.updateUser);
+router.patch("/change-password", userController.changePassword);
+router.patch("/deactivate-user", userController.deactivateUser);
+router.get("/logout", userController.logout);
 
 // --------------------------------------------------- //
-router.post('/device', userController.createDevice);
-router.get('/device', userController.getAllDevices);
-router.get('/device/:plateNumber', userController.getDeviceWithPlateNumber);
-router.patch('/device/:plateNumber', userController.updateDevice);
-router.delete('/device/:plateNumber', userController.deleteDevice);
+router.post("/device", userController.createDevice);
+router.get("/device", userController.getAllDevices);
+router.get("/device/:plateNumber", userController.getDeviceWithPlateNumber);
+router.patch("/device/:plateNumber", userController.updateDevice);
+router.delete("/device/:plateNumber", userController.deleteDevice);
 
 // --------------------------------------------------- //
-router.post('/geofence', userController.createGeofence);
-router.get('/geofence', userController.getAllGeofences);
-router.post('/geofence/check-inside', userController.checkInsideGeofence);
-router.get('/geofence/:id/area', userController.getGeofenceArea);
-router.get('/geofence/:id', userController.getGeofence);
-router.patch('/geofence/:id/disable', userController.disableGeofence);
-router.patch('/geofence/:id/recover', userController.recoverGeofence);
-router.patch('/geofence/:id', userController.updateGeofence);
-router.delete('/geofence/:id', userController.deleteGeofence);
+router.post("/geofence", userController.createGeofence);
+router.get("/geofence", userController.getAllGeofences);
+router.post("/geofence/check-inside", userController.checkInsideGeofence);
+router.get("/geofence/:id/area", userController.getGeofenceArea);
+router.get("/geofence/:id", userController.getGeofence);
+router.patch("/geofence/:id/disable", userController.disableGeofence);
+router.patch("/geofence/:id/recover", userController.recoverGeofence);
+router.patch("/geofence/:id", userController.updateGeofence);
+router.delete("/geofence/:id", userController.deleteGeofence);
 
 // --------------------------------------------------- //
-router.get('/live/:plateNumber', userController.trackLive);
+router.get("/live/:plateNumber", userController.trackLive);
 
 export default router;

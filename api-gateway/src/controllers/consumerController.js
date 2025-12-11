@@ -1,29 +1,29 @@
-import axios from 'axios';
+import axios from "axios";
 
-import AppError from '../util/appError.js';
+import AppError from "../util/appError.js";
 
 export const getDeviceHistory = async (req, res, next) => {
-  try {
-    const deviceId = req.params.deviceId;
+	try {
+		const deviceId = req.params.deviceId;
 
-    if (!deviceId) {
-      return next(new AppError('Please enter deviceId', 400));
-    }
+		if (!deviceId) {
+			return next(new AppError("Please enter deviceId", 400));
+		}
 
-    const response = await axios.get(
-      `${process.env.CONSUMER_SERVICE_URL}/api/consumer/${deviceId}/history`,
-      {
-        params: req.query,
-      }
-    );
+		const response = await axios.get(
+			`${process.env.CONSUMER_SERVICE_URL}/api/consumer/${deviceId}/history`,
+			{
+				params: req.query,
+			},
+		);
 
-    res.status(200).json(response.data);
-  } catch (error) {
-    return next(
-      new AppError(
-        error.response?.data?.message || 'Error getting the vehicle history!',
-        error.response?.status || 500
-      )
-    );
-  }
+		res.status(200).json(response.data);
+	} catch (error) {
+		return next(
+			new AppError(
+				error.response?.data?.message || "Error getting the vehicle history!",
+				error.response?.status || 500,
+			),
+		);
+	}
 };

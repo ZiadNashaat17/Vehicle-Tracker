@@ -1,23 +1,24 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController.js';
+import * as authController from '../controllers/authController.js';
 import authenticate from '../middlewares/authenticate.js';
 
 const router = Router();
 
-router.post('/register', userController.register);
-router.get('/verify-email/:verifyToken', userController.verifyEmail);
-router.post('/login', userController.login);
-router.post('/forgot-password', userController.forgotPassword);
-router.patch('/reset-password/:resetToken', userController.resetPassword);
-router.patch('/reactivate-user', userController.reactivateUser);
+router.post('/register', authController.register);
+router.get('/verify-email/:verifyToken', authController.verifyEmail);
+router.post('/login', authController.login);
+router.post('/forgot-password', authController.forgotPassword);
+router.patch('/reset-password/:resetToken', authController.resetPassword);
+router.patch('/reactivate-user', authController.reactivateUser);
 
-router.get('/authenticate-user', userController.authenticateUser);
+router.get('/authenticate-user', authController.authenticateUser);
 
 router.use(authenticate);
 router.get('/', userController.getUser);
 router.patch('/update-user', userController.updateUser);
-router.patch('/change-password', userController.changePassword);
-router.patch('/deactivate-user', userController.deactivateUser);
+router.patch('/change-password', authController.changePassword);
+router.patch('/deactivate-user', authController.deactivateUser);
 router.get('/logout', userController.logout);
 
 export default router;

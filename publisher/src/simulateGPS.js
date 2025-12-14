@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/track";
-const UPDATE_INTERVAL = 500; // 3 seconds
+const UPDATE_INTERVAL = 3000; // 3 seconds
 
 // Define multiple devices with different routes
 const DEVICES = [

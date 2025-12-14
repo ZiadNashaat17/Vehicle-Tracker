@@ -206,7 +206,7 @@
 
       // Connect to Socket.IO server
       function connectSocket() {
-        socket = io('http://localhost:3000');
+        socket = io('https://v05j2rv7-3000.euw.devtunnels.ms/');
 
         socket.on('connect', () => {
           console.log('✓ Connected to WebSocket');
@@ -225,7 +225,7 @@
           deviceInfoDiv.innerHTML = `<strong>Tracking Device:</strong> ${data.deviceId}`;
         });
 
-        socket.on('vehicle:live', data => {
+        socket.on('device:live', data => {
           console.log('📍 New record received:', data);
           addRecord(data);
         });

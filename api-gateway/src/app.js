@@ -21,7 +21,7 @@ const limit = rateLimit({
 
 app.use(express.json());
 app.use(helmet());
-app.use("/api", limit);
+// app.use("/api", limit);
 
 if (process.env.NODE_ENV?.trim() === "development") {
 	app.use(morgan("dev"));

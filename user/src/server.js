@@ -4,7 +4,7 @@ import { connect, disconnect } from "mongoose";
 import app from "./app.js";
 import { closeRedis } from "./services/redisCache.js";
 import { initRedisSubscriber } from "./services/redisChannelSubscribe.js";
-import { initializeSocket } from "./services/websocket.js";
+import { initializeSocket } from "./services/socket.js";
 
 const DB = process.env.DATABASE;
 const port = process.env.PORT || 3000;

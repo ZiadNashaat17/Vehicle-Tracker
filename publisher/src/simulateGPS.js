@@ -15,16 +15,16 @@ const DEVICES = [
 		],
 		speed: 60,
 	},
-	// {
-	//   deviceId: '691ebd94603e9c69e7e80c22',
-	//   route: [
-	//     { lat: 30.08, lng: 31.27 },
-	//     { lat: 30.075, lng: 31.265 },
-	//     { lat: 30.07, lng: 31.26 },
-	//     { lat: 30.065, lng: 31.255 },
-	//   ],
-	//   speed: 45,
-	// },
+	{
+		deviceId: "6937ea0571a2a4574895a6e3",
+		route: [
+			{ lat: 30.08, lng: 31.27 },
+			{ lat: 30.075, lng: 31.265 },
+			{ lat: 30.07, lng: 31.26 },
+			{ lat: 30.065, lng: 31.255 },
+		],
+		speed: 45,
+	},
 ];
 
 class DeviceSimulator {

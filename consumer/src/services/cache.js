@@ -18,6 +18,7 @@ mongoose.Query.prototype.cache = function (options = {}) {
 
 mongoose.Query.prototype.exec = async function () {
 	if (!this.useCache) {
+		// biome-ignore lint/complexity/noArguments: <>
 		return exec.apply(this, arguments);
 	}
 
@@ -36,6 +37,7 @@ mongoose.Query.prototype.exec = async function () {
 		return Array.isArray(doc) ? doc.map(d => new this.model(d)) : new this.model(doc);
 	}
 
+	// biome-ignore lint/complexity/noArguments: <>
 	const result = await exec.apply(this, arguments);
 
 	await client.setEx(key, 300, JSON.stringify(result));

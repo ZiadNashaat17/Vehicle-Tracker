@@ -1,17 +1,12 @@
 import axios from "axios";
 
-/**
- * Multiple Device GPS Simulator
- * Simulates multiple devices with different routes
- */
-
 const API_URL = "http://localhost:5000/api/track";
-const UPDATE_INTERVAL = 3000; // 3 seconds
+const UPDATE_INTERVAL = 500; // 3 seconds
 
 // Define multiple devices with different routes
 const DEVICES = [
 	{
-		deviceId: "6926f323edd81b0296c62b7e",
+		deviceId: "6935e24af7d01a39910bd5d7",
 		route: [
 			{ lat: 30.0444, lng: 31.2357 },
 			{ lat: 30.05, lng: 31.24 },
@@ -36,14 +31,16 @@ class DeviceSimulator {
 	constructor(device) {
 		this.deviceId = device.deviceId;
 		this.route = device.route;
-		this.baseSpeed = device.speed;
+		this.speed = device.speed;
+		this.status = device.status;
+		this.timestamp = device.timestamp;
 		this.currentIndex = 0;
 		this.progress = 0;
 	}
 
 	generateSpeed() {
 		const variation = (Math.random() - 0.5) * 15;
-		return Math.max(0, this.baseSpeed + variation);
+		return Math.max(0, this.speed + variation);
 	}
 
 	getNextPosition() {
@@ -71,14 +68,15 @@ class DeviceSimulator {
 			lat: parseFloat(position.lat.toFixed(6)),
 			lng: parseFloat(position.lng.toFixed(6)),
 			speed: parseFloat(this.generateSpeed().toFixed(2)),
-			timestamp: new Date().toISOString(),
+			status: this.status,
+			timestamp: this.timestamp || Date.now(),
 		};
 	}
 
 	async send() {
 		const data = this.generateGPSRecord();
 		try {
-			await axios.post(API_URL, data);
+			await axios.post(API_URL, data, { headers: { Authorization: `Bearer` } });
 			console.log(
 				`✅ ${this.deviceId}: Lat ${data.lat}, Lng ${data.lng}, Speed ${data.speed} km/h`,
 			);

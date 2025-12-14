@@ -4,9 +4,11 @@ import AppError from "../util/appError.js";
 
 export const trackController = async (req, res, next) => {
 	try {
-		const response = await axios.post(`${process.env.PUBLISHER_SERVICE_URL}/api/track`, req.body);
+		const token = req.headers.authorization.split(" ")[1];
 
-		console.log(response.data);
+		const response = await axios.post(`${process.env.PUBLISHER_SERVICE_URL}/api/track`, req.body, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
 
 		res.status(201).json(response.data);
 	} catch (error) {

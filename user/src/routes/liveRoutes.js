@@ -5,6 +5,6 @@ import authenticate from "../middlewares/authenticate.js";
 
 const router = Router();
 
-router.get("/:plateNumber", authenticate, updateLive);
+router.get("/:deviceId", authenticate, updateLive);
 
 export default router;

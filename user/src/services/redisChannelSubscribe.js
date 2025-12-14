@@ -24,7 +24,7 @@ export async function initRedisSubscriber(io) {
 		if (io && record.deviceId) {
 			const room = `device:${record.deviceId}`;
 			io.to(room).emit("device:live", record);
-			console.log(`Emitted live update to room: ${room}`);
+			console.log(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
 		}
 	});
 

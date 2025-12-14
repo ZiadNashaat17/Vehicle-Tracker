@@ -107,7 +107,7 @@
     <!-- Step 3: Vehicle Tracking (hidden initially) -->
     <div id="trackingSection" class="section hidden">
       <h2>Step 3: Start Vehicle Tracking</h2>
-      <input type="text" id="plateNumber" placeholder="Enter Vehicle Plate Number" />
+      <input type="text" id="deviceId" placeholder="Enter Device ID" />
       <button id="startTracking">Start Tracking</button>
     </div>
 
@@ -138,7 +138,6 @@
       const startBtn = document.getElementById('startTracking');
 
       let socket;
-      let currentDeviceId;
       let authToken = null;
       let currentUser = null;
 
@@ -206,7 +205,11 @@
 
       // Connect to Socket.IO server
       function connectSocket() {
-        socket = io('https://v05j2rv7-3000.euw.devtunnels.ms/');
+        socket = io('https://v05j2rv7-3000.euw.devtunnels.ms/', {
+          auth: {
+            token: authToken
+          }
+        });
 
         socket.on('connect', () => {
           console.log('✓ Connected to WebSocket');
@@ -233,10 +236,10 @@
 
       // Step 3: Start tracking a vehicle
       async function startTracking() {
-        const plateNumber = document.getElementById('plateNumber').value;
+        const deviceId = document.getElementById('deviceId').value;
 
-        if (!plateNumber) {
-          alert('Please enter a plate number');
+        if (!deviceId) {
+          alert('Please enter deviceId');
           return;
         }
 
@@ -251,10 +254,10 @@
           statusDiv.className = 'disconnected';
 
           console.log('Sending request to:', 'http://localhost:3000/api/live');
-          console.log('With plate number:', plateNumber);
+          console.log('With deviceId:', deviceId);
 
           // Hit the /live endpoint
-          const response = await fetch(`http://localhost:3000/api/live/${plateNumber}`, {
+          const response = await fetch(`http://localhost:3000/api/live/${deviceId}`, {
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
@@ -271,9 +274,6 @@
 
           console.log('Live endpoint response:', result);
 
-          // Get device ID from response
-          currentDeviceId = result.data.deviceId;
-
           // Display initial data
           addRecord(result.data.initialData);
 
@@ -285,8 +285,17 @@
             connectSocket();
           }
 
-          // Join the device room
-          socket.emit('join:device-room', currentDeviceId);
+          // Join the device room with acknowledgment
+          socket.emit('join:device-room', deviceId, (response) => {
+            if (response?.error) {
+              console.error('Failed to join room:', response.error);
+              statusDiv.textContent = `Error: ${response.error}`;
+              statusDiv.className = 'disconnected';
+              alert(`Failed to join device room: ${response.error}`);
+              return;
+            }
+            console.log('Successfully joined device room:', response);
+          });
 
           statusDiv.textContent = 'Tracking active - receiving live updates';
           statusDiv.className = 'connected';

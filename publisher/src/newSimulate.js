@@ -13,22 +13,11 @@ const DEVICES = [
 		speed: 80,
 	},
 	// {
-	// 	deviceId: "6937ead371a2a4574895a6ff",
-	// 	route: [
-	// 		// Route 2: Simulating another road
-	// 		{ lat: 30.08, lng: 31.27 },
-	// 		{ lat: 30.0793, lng: 31.2693 },
-	// 		{ lat: 30.0786, lng: 31.2686 },
-	// 		{ lat: 30.0779, lng: 31.2679 },
-	// 		{ lat: 30.0772, lng: 31.2672 },
-	// 		{ lat: 30.0765, lng: 31.2665 },
-	// 		{ lat: 30.0758, lng: 31.2658 },
-	// 		{ lat: 30.0751, lng: 31.2651 },
-	// 		{ lat: 30.0744, lng: 31.2644 },
-	// 		{ lat: 30.0737, lng: 31.2637 },
-	// 		{ lat: 30.073, lng: 31.263 },
-	// 	],
-	// 	speed: 45,
+	// 	deviceId: "693daaf2a7cd544e618be7f1",
+	// 	start: { lat: 30.036953, lng: 31.205739 },
+	// 	end: { lat: 30.057834, lng: 31.217332 },
+	// 	status: "Moving",
+	// 	speed: 80,
 	// },
 ];
 

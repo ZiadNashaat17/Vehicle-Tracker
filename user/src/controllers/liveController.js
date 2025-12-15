@@ -3,13 +3,16 @@ import { getCachedRecord } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
 
 export const updateLive = async (req, res, next) => {
-	const plateNumber = req.params.plateNumber;
-	const device = await Device.findOne({ plateNumber });
+	const device = await Device.findOne({ _id: req.params.deviceId });
 
 	if (!device) {
 		console.log("No device!");
 
 		return next(new AppError("No device found with this plate number!", 404));
+	}
+
+	if (device.user.toString() !== req.user._id.toString()) {
+		return next(new AppError("You're not authorized to access this device!", 401));
 	}
 
 	const cachedRecord = await getCachedRecord(device._id);

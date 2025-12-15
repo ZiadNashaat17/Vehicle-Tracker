@@ -60,7 +60,7 @@ export const updateDevice = async (req, res, next) => {
 
 	res.status(201).json({
 		status: "success",
-		data: device,
+		data: { device },
 	});
 };
 
@@ -84,8 +84,7 @@ export const updateDeviceLastLocation = async record => {
 	const device = await Device.findOne({ _id: record.deviceId });
 
 	if (!device) {
-		console.error(`Device not found for deviceId: ${record.deviceId}`);
-		return;
+		return next(new AppError("Device not found!", 404));
 	}
 
 	device.lastLocation = { type: "Point", coordinates: [record.lng, record.lat] };

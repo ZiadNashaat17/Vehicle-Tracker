@@ -58,9 +58,7 @@ export const updateUser = async (req, res, next) => {
 	res.status(201).json({
 		status: "success",
 		message: "Account updated successfully",
-		data: {
-			user,
-		},
+		data: { user },
 	});
 };
 

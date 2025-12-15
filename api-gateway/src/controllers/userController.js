@@ -602,9 +602,9 @@ export const deleteGeofence = async (req, res, next) => {
 export const trackLive = async (req, res, next) => {
 	try {
 		const token = req.headers.authorization.split(" ")[1];
-		const plateNumber = req.params.plateNumber;
+		const deviceId = req.params.deviceId;
 
-		const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/live/${plateNumber}`, {
+		const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/live/${deviceId}`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 

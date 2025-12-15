@@ -38,6 +38,6 @@ router.patch("/geofence/:id", userController.updateGeofence);
 router.delete("/geofence/:id", userController.deleteGeofence);
 
 // --------------------------------------------------- //
-router.get("/live/:plateNumber", userController.trackLive);
+router.get("/live/:deviceId", userController.trackLive);
 
 export default router;

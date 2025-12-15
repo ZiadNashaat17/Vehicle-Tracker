@@ -182,6 +182,8 @@ cd Vehicle-Tracker
    cd consumer && npm install && cd ..
    ```
 
+   Or run the `setupApp.sh` file in terminal.
+
 3. **Set up environment variables**
 
    Create `config.env` files in each service directory:
@@ -222,6 +224,8 @@ cd Vehicle-Tracker
    cd api-gateway
    npm run start-dev  # or npm start for production
    ```
+
+   Or run `startApp.sh` file in terminal.
 
 ### Option 2: Docker Deployment (Recommended)
 
@@ -421,7 +425,7 @@ node publisher/simulateGPS.js
 
 The simulator will:
 
-- Generate realistic GPS data for multiple vehicles
+- Generate realistic GPS data for multiple devices
 - Send data to your API automatically
 - Show live updates in the console
 - Loop through predefined routes continuously
@@ -432,7 +436,7 @@ For detailed configuration options, see [GPS Simulator Documentation](docs/GPS_S
 
 1. Open `live-tracking.html` in a browser
 2. Connect to the Socket.io server
-3. Send GPS coordinates via the `/api/v1/track` endpoint
+3. Send GPS coordinates via the `/api/track` endpoint
 4. Watch real-time updates on the map
 
 ### API Testing
@@ -466,13 +470,11 @@ Edit `simulateGPS.js` to customize:
 ```javascript
 const DEVICES = [
   {
-    deviceId: "your-device-id",
-    route: [
-      { lat: 30.0444, lng: 31.2357 },
-      { lat: 30.05, lng: 31.24 },
-      // Add more waypoints...
-    ],
-    speed: 60, // km/h
+    deviceId: "693daaf2a7cd544e618be7f1",
+    start: { lat: 30.036953, lng: 31.205739 },
+    end: { lat: 30.057834, lng: 31.217332 },
+    status: "Moving",
+    speed: 80, // km/h
   },
   // Add more devices...
 ];
@@ -755,13 +757,14 @@ Defines geographic boundaries for alerts and monitoring.
 
 Stores historical GPS tracking data.
 
-| Field       | Type     | Description                       |
-| ----------- | -------- | --------------------------------- |
-| `deviceId`  | ObjectId | Reference to Device (required)    |
-| `lat`       | Number   | Latitude (-90 to 90, required)    |
-| `lng`       | Number   | Longitude (-180 to 180, required) |
-| `speed`     | Number   | Speed in km/h (required)          |
-| `timestamp` | Date     | Record timestamp (default: now)   |
+| Field       | Type     | Description                                               |
+| ----------- | -------- | --------------------------------------------------------- |
+| `deviceId`  | ObjectId | Reference to Device (required)                            |
+| `lat`       | Number   | Latitude (-90 to 90, required)                            |
+| `lng`       | Number   | Longitude (-180 to 180, required)                         |
+| `speed`     | Number   | Speed in km/h (required)                                  |
+| `status`    | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` |
+| `timestamp` | Date     | Record timestamp (default: now)                           |
 
 **Relationships**:
 

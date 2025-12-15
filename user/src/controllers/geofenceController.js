@@ -60,7 +60,7 @@ export const createGeofence = async (req, res, next) => {
 
 	res.status(201).json({
 		status: "success",
-		data: geofence,
+		data: { geofence },
 	});
 };
 
@@ -88,7 +88,7 @@ export const getGeofence = async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		geofence,
+		data: { geofence },
 	});
 };
 
@@ -163,7 +163,7 @@ export const disableGeofence = async (req, res, next) => {
 	res.status(201).json({
 		status: "success",
 		message: "Geofence is not active now",
-		geofence,
+		data: null,
 	});
 };
 
@@ -180,7 +180,7 @@ export const recoverGeofence = async (req, res, next) => {
 	res.status(201).json({
 		status: "success",
 		message: "Geofence recovered successfully",
-		geofence,
+		data: { geofence },
 	});
 };
 
@@ -199,7 +199,7 @@ export const updateGeofence = async (req, res, next) => {
 	res.status(201).json({
 		status: "success",
 		message: "Geofence updated successfully",
-		updatedGeofence,
+		data: { geofence: updatedGeofence },
 	});
 };
 

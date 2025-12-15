@@ -60,7 +60,7 @@ export const updateDevice = async (req, res, next) => {
 
 	res.status(201).json({
 		status: "success",
-		data: device,
+		data: { device },
 	});
 };
 

@@ -329,14 +329,16 @@ export const getAllDevices = async (req, res, next) => {
 	}
 };
 
-export const getDeviceWithPlateNumber = async (req, res, next) => {
+export const getDevice = async (req, res, next) => {
 	try {
 		const token = req.headers.authorization.split(" ")[1];
-		const plateNumber = req.params.plateNumber;
 
-		const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device/${plateNumber}`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const response = await axios.get(
+			`${process.env.USER_SERVICE_URL}/api/device/${req.params.deviceId}`,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
 
 		res.status(response.status).json(response.data);
 	} catch (error) {

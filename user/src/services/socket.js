@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
-import Device from "../models/deviceModel.js";
+// import Device from "../models/deviceModel.js";
 import User from "../models/userModel.js";
 
 let io;

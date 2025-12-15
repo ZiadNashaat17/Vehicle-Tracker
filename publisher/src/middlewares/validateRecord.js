@@ -5,6 +5,7 @@ const recordSchema = Joi.object({
 	lng: Joi.number().min(-180).max(180).required(),
 	lat: Joi.number().min(-90).max(90).required(),
 	speed: Joi.number().required(),
+	rotation: Joi.number().min(0).max(360).optional(),
 	status: Joi.string().valid("Parking", "Idling", "Moving", "Towed").optional(),
 	timestamp: Joi.date(),
 });

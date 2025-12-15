@@ -21,17 +21,9 @@ const deviceSchema = new Schema({
 		enum: ["Motorcycle", "Car", "Truck"],
 	},
 	status: { type: String, default: "Parking", enum: ["Parking", "Moving", "Idling", "Towed"] },
-	speed: { type: Number, default: 0 },
-	lastLocation: {
-		type: {
-			type: String,
-			enum: ["Point"],
-			default: "Point",
-		},
-		coordinates: {
-			type: [Number],
-			default: [0, 0],
-		},
+	lastRecord: {
+		type: Schema.Types.ObjectId,
+		ref: "Record",
 	},
 });
 

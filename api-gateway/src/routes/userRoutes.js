@@ -22,7 +22,7 @@ router.get("/logout", userController.logout);
 // --------------------------------------------------- //
 router.post("/device", userController.createDevice);
 router.get("/device", userController.getAllDevices);
-router.get("/device/:plateNumber", userController.getDeviceWithPlateNumber);
+router.get("/device/:deviceId", userController.getDevice);
 router.patch("/device/:plateNumber", userController.updateDevice);
 router.delete("/device/:plateNumber", userController.deleteDevice);
 

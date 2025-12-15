@@ -28,7 +28,7 @@ export const consumeRabbitMQ = async () => {
 				// Clear all cached queries for this device
 				await clearHash(record.deviceId);
 
-				cacheLatestRecord(input);
+				cacheLatestRecord(record);
 
 				await publishRecord(record);
 

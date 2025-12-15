@@ -15,7 +15,7 @@ router.use(authenticate);
 
 router.post("/", cleanCache, createDevice);
 router.get("/", getAllDevices);
-router.get("/:plateNumber", getDevice);
+router.get("/:deviceId", getDevice);
 router.patch("/:plateNumber", cleanCache, updateDevice);
 router.delete("/:plateNumber", cleanCache, deleteDevice);
 

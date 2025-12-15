@@ -3,7 +3,9 @@ import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
 export const createDevice = async (req, res, _next) => {
-	req.body.user = req.user._id;
+	if (req.user.role !== "admin") {
+		req.body.user = req.user._id;
+	}
 
 	const device = await Device.create(req.body);
 
@@ -15,12 +17,23 @@ export const createDevice = async (req, res, _next) => {
 
 export const getDevice = async (req, res, next) => {
 	const device = await Device.findOne({
-		user: req.user._id,
-		plateNumber: req.params.plateNumber,
-	}).cache({ key: req.user._id });
+		_id: req.params.deviceId,
+	}).populate("lastRecord");
+	// .cache({ key: req.user._id });
 
 	if (!device) {
 		return next(new AppError("No device found with this plate number!!", 404));
+	}
+
+	// console.log("req.user", req.user._id);
+	// console.log("device.user", device.user);
+
+	// console.log(typeof req.user._id, typeof device.user);
+
+	// console.log("true of false: ", req.user._id.toString() !== device.user.toString());
+
+	if (req.user._id.toString() !== device.user.toString()) {
+		return next(new AppError("You're not authorized to access this device!", 401));
 	}
 
 	res.status(200).json({
@@ -87,18 +100,21 @@ export const updateDeviceLastLocation = async record => {
 		return next(new AppError("Device not found!", 404));
 	}
 
-	device.lastLocation = { type: "Point", coordinates: [record.lng, record.lat] };
-	// if (record.speed > 0) device.status = 'Moving';
+	// device.lastRecord.lat = record.lat;
+	// device.lastRecord.lng = record.lng;
+	// // if (record.speed > 0) device.status = 'Moving';
+
+	device.lastRecord = record;
 
 	device.status = record.status ? record.status : record.speed > 0 ? "Moving" : "Parking";
 
-	device.speed = record.speed;
-
 	await device.save();
 
-	console.log(
-		`Updated device ${device.plateNumber} location to [${record.lng}, ${record.lat}], speed to: ${record.speed} and status to: ${record.status}`,
-	);
+	console.log("record: ", record);
+
+	// console.log(
+	// 	`Updated device ${device._id} location to [${device.lastRecord.lng}, ${device.lastRecord.lat}], speed to: ${device.lastRecord.speed} and status to: ${device.lastRecord.status}`,
+	// );
 
 	return device.user;
 };

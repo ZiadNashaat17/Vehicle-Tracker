@@ -30,55 +30,59 @@ export const initializeSocket = httpServer => {
 	io.on("connection", socket => {
 		if (socket.userId) {
 			console.log(`User ${socket.userId} connected (socket ${socket.id})`);
+
+			socket.join(`user:${socket.userId}`);
+
+			console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: user:${socket.userId}`);
 		} else {
 			console.log(`Unauthenticated socket connected: ${socket.id}`);
 		}
 
 		console.log("Total connected clients:", io.engine.clientsCount);
 
-		socket.on("join:device-room", async (deviceId, ack) => {
-			try {
-				if (!socket.userId) {
-					console.log(`Unauthorized attempt to join device:${deviceId} by socket ${socket.id}`);
+		// socket.on("join:device-room", async (deviceId, ack) => {
+		// 	try {
+		// 		if (!socket.userId) {
+		// 			console.log(`Unauthorized attempt to join device:${deviceId} by socket ${socket.id}`);
 
-					return ack?.({ error: "Authentication required to join device room" });
-				}
+		// 			return ack?.({ error: "Authentication required to join device room" });
+		// 		}
 
-				// Verify the user owns this device
-				const device = await Device.findById(deviceId);
+		// 		// Verify the user owns this device
+		// 		const device = await Device.findById(deviceId);
 
-				if (!device) {
-					console.log(`Device ${deviceId} not found`);
+		// 		if (!device) {
+		// 			console.log(`Device ${deviceId} not found`);
 
-					return ack?.({ error: "Device not found" });
-				}
+		// 			return ack?.({ error: "Device not found" });
+		// 		}
 
-				if (device.user.toString() !== socket.userId) {
-					console.log(
-						`User ${socket.userId} attempted to join device:${deviceId} without permission`,
-					);
-					return ack?.({ error: "Not authorized to access this device" });
-				}
+		// 		if (device.user.toString() !== socket.userId) {
+		// 			console.log(
+		// 				`User ${socket.userId} attempted to join device:${deviceId} without permission`,
+		// 			);
+		// 			return ack?.({ error: "Not authorized to access this device" });
+		// 		}
 
-				socket.join(`device:${deviceId}`);
+		// 		socket.join(`device:${deviceId}`);
 
-				console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: device:${deviceId}`);
+		// 		console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: device:${deviceId}`);
 
-				socket.emit("joined", { deviceId, message: "Successfully joined device room" });
+		// 		socket.emit("joined", { deviceId, message: "Successfully joined device room" });
 
-				ack?.({ status: "ok", deviceId });
-			} catch (error) {
-				console.error("Error joining device room:", error);
+		// 		ack?.({ status: "ok", deviceId });
+		// 	} catch (error) {
+		// 		console.error("Error joining device room:", error);
 
-				ack?.({ error: "Failed to join device room" });
-			}
-		});
+		// 		ack?.({ error: "Failed to join device room" });
+		// 	}
+		// });
 
-		socket.on("leave:device-room", deviceId => {
-			socket.leave(`device:${deviceId}`);
+		// socket.on("leave:device-room", deviceId => {
+		// 	socket.leave(`device:${deviceId}`);
 
-			console.log(`Socket ${socket.id} left room: device:${deviceId}`);
-		});
+		// 	console.log(`Socket ${socket.id} left room: device:${deviceId}`);
+		// });
 
 		socket.on("disconnect", _reason => {
 			if (socket.userId) {

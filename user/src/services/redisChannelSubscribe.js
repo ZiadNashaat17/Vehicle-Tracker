@@ -21,8 +21,8 @@ export async function initRedisSubscriber(io) {
 		console.log("Cleaning hash: ", userId);
 		clearHash(userId);
 
-		if (io && record.deviceId) {
-			const room = `device:${record.deviceId}`;
+		if (io && userId) {
+			const room = `user:${userId}`;
 			io.to(room).emit("device:live", record);
 			console.log(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
 		}

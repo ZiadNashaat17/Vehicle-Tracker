@@ -182,7 +182,7 @@ cd Vehicle-Tracker
    cd consumer && npm install && cd ..
    ```
 
-   Or run the `setupApp.sh` file in terminal
+   Or run the `setupApp.sh` file in terminal.
 
 3. **Set up environment variables**
 
@@ -225,7 +225,7 @@ cd Vehicle-Tracker
    npm run start-dev  # or npm start for production
    ```
 
-   Or run `startApp.sh` file in terminal
+   Or run `startApp.sh` file in terminal.
 
 ### Option 2: Docker Deployment (Recommended)
 
@@ -471,10 +471,10 @@ Edit `simulateGPS.js` to customize:
 const DEVICES = [
   {
     deviceId: "693daaf2a7cd544e618be7f1",
-		start: { lat: 30.036953, lng: 31.205739 },
-		end: { lat: 30.057834, lng: 31.217332 },
-		status: "Moving",
-		speed: 80, // km/h
+    start: { lat: 30.036953, lng: 31.205739 },
+    end: { lat: 30.057834, lng: 31.217332 },
+    status: "Moving",
+    speed: 80, // km/h
   },
   // Add more devices...
 ];
@@ -757,14 +757,14 @@ Defines geographic boundaries for alerts and monitoring.
 
 Stores historical GPS tracking data.
 
-| Field       | Type     | Description                       |
-| ----------- | -------- | --------------------------------- |
-| `deviceId`  | ObjectId | Reference to Device (required)    |
-| `lat`       | Number   | Latitude (-90 to 90, required)    |
-| `lng`       | Number   | Longitude (-180 to 180, required) |
-| `speed`     | Number   | Speed in km/h (required)          |
+| Field       | Type     | Description                                               |
+| ----------- | -------- | --------------------------------------------------------- |
+| `deviceId`  | ObjectId | Reference to Device (required)                            |
+| `lat`       | Number   | Latitude (-90 to 90, required)                            |
+| `lng`       | Number   | Longitude (-180 to 180, required)                         |
+| `speed`     | Number   | Speed in km/h (required)                                  |
 | `status`    | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` |
-| `timestamp` | Date     | Record timestamp (default: now)   |
+| `timestamp` | Date     | Record timestamp (default: now)                           |
 
 **Relationships**:
 

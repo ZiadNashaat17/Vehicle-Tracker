@@ -1,6 +1,4 @@
 import amqp from "amqplib";
-import Record from "../models/recordModel.js";
-import { cacheLatestRecord, clearHash } from "./cache.js";
 import { publishRecord } from "./redisChannelPublish.js";
 
 let channel;
@@ -23,16 +21,9 @@ export const consumeRabbitMQ = async () => {
 				const input = JSON.parse(message.content.toString());
 				console.log(`Consumer received record: ${JSON.stringify(input)}`);
 
-				const record = await Record.create(input);
+				await publishRecord(input);
 
-				// Clear all cached queries for this device
-				await clearHash(record.deviceId);
-
-				cacheLatestRecord(record);
-
-				await publishRecord(record);
-
-				if (record) {
+				if (input) {
 					channel.ack(message);
 				}
 			} catch (error) {

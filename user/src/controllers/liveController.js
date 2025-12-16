@@ -18,7 +18,11 @@ export const updateLive = async (req, res, next) => {
 	const cachedRecord = await getCachedRecord(device._id);
 
 	if (!cachedRecord) {
-		return next(new AppError("No live data available for this device!", 404));
+		res.status(404).json({
+			status: "fail",
+			message: "No live data for this device",
+			data: null,
+		});
 	}
 
 	res.status(200).json({

@@ -5,6 +5,16 @@ import { clearHash } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
+export const getAllUsers = async (req, res, next) => {
+	const users = await User.find({ active: true });
+
+	res.status(200).json({
+		status: "success",
+		results: users.length,
+		data: { users },
+	});
+};
+
 export const getUser = async (req, res, next) => {
 	const user = await User.findOne({ _id: req.user._id, active: true });
 

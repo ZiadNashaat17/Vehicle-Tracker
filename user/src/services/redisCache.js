@@ -31,10 +31,17 @@ mongoose.Query.prototype.exec = async function () {
 	if (cacheValue) {
 		const doc = JSON.parse(cacheValue);
 
-		return Array.isArray(doc) ? doc.map(d => new this.model(d)) : new this.model(doc);
+		console.log("Serving from cache");
+
+		// Use hydrate() to properly restore Mongoose documents with populated fields
+		return Array.isArray(doc) ? doc.map(d => this.model.hydrate(d)) : this.model.hydrate(doc);
 	}
 	// biome-ignore lint/complexity/noArguments: <>
 	const result = await exec.apply(this, arguments);
+
+	console.log("populate", this._mongooseOptions.populate);
+
+	console.log("result: ", result);
 
 	console.log("key: ", key);
 
@@ -45,6 +52,12 @@ mongoose.Query.prototype.exec = async function () {
 
 export const clearHash = hashKey => {
 	client.del(JSON.stringify(hashKey));
+};
+
+export const cacheLatestRecord = async record => {
+	const key = `device:${record.deviceId}`;
+
+	await client.setEx(key, 3600, JSON.stringify(record));
 };
 
 export const getCachedRecord = async deviceId => {

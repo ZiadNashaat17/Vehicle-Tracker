@@ -1,14 +1,24 @@
+import Device from "../models/deviceModel.js";
 import Record from "../models/recordModel.js";
 import APIFeatures from "../util/apiFeatures.js";
 import AppError from "../util/appError.js";
 
-export const getDeviceRecords = async (req, res, next) => {
+export const getDeviceHistory = async (req, res, next) => {
 	const deviceId = req.params.deviceId;
 	const startDate = req.query.startDate;
 	const endDate = req.query.endDate;
 
 	if (!deviceId) {
 		return next(new AppError("Please provide a device id", 400));
+	}
+
+	const device = await Device.findOne({ 
+        _id: deviceId, 
+        user: req.user._id 
+    });
+
+	if (!device) {
+		return next(new AppError("No device found!", 404));
 	}
 
 	const query = { deviceId: deviceId };
@@ -20,7 +30,7 @@ export const getDeviceRecords = async (req, res, next) => {
 		query.timestamp = { $lte: endDate };
 	}
 
-	const features = new APIFeatures(Record.find(query).cache({ key: deviceId }), req.query)
+	const features = new APIFeatures(Record.find(query).cache({ key: req.user._id }), req.query)
 		.filter()
 		.limit()
 		.sort()

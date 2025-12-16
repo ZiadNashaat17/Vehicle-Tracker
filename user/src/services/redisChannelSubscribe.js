@@ -1,7 +1,8 @@
+import Record from "../models/recordModel.js";
 import { createClient } from "redis";
 
 import { updateDeviceLastLocation } from "../controllers/deviceController.js";
-import { clearHash } from "./redisCache.js";
+import { clearHash, cacheLatestRecord } from "./redisCache.js";
 
 let subClient;
 
@@ -13,8 +14,14 @@ export async function initRedisSubscriber(io) {
 	await subClient.connect();
 
 	await subClient.subscribe("new-record", async message => {
-		const record = JSON.parse(message);
-		console.log("User received record from consumer:", record);
+		const input = JSON.parse(message);
+		console.log("User received record from consumer:", input);
+
+		const record = await Record.create(input);
+
+		console.log("new record created: ", record);
+
+		cacheLatestRecord(record);
 
 		const userId = await updateDeviceLastLocation(record);
 

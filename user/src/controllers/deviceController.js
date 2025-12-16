@@ -3,7 +3,9 @@ import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
 export const createDevice = async (req, res, _next) => {
-	req.body.user = req.user._id;
+	if (req.user.role !== "admin") {
+		req.body.user = req.user._id;
+	}
 
 	const device = await Device.create(req.body);
 
@@ -15,12 +17,15 @@ export const createDevice = async (req, res, _next) => {
 
 export const getDevice = async (req, res, next) => {
 	const device = await Device.findOne({
+		_id: req.params.deviceId,
 		user: req.user._id,
-		plateNumber: req.params.plateNumber,
-	}).cache({ key: req.user._id });
+	})
+		.populate("user")
+		.populate("lastRecord")
+		.cache({ key: req.user._id });
 
 	if (!device) {
-		return next(new AppError("No device found with this plate number!!", 404));
+		return next(new AppError("No device found!", 404));
 	}
 
 	res.status(200).json({
@@ -36,7 +41,10 @@ export const getAllDevices = async (req, res, _next) => {
 		query.status = status;
 	}
 
-	const devices = await Device.find(query).cache({ key: req.user._id });
+	const devices = await Device.find(query)
+		.cache({ key: req.user._id })
+		.populate("user")
+		.populate("lastRecord");
 
 	res.status(200).json({
 		status: "success",
@@ -49,7 +57,7 @@ export const updateDevice = async (req, res, next) => {
 	const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status");
 
 	const device = await Device.findOneAndUpdate(
-		{ plateNumber: req.params.plateNumber },
+		{ _id: req.params.deviceId, user: req.user._id },
 		filteredBody,
 		{ new: true, runValidators: true },
 	);
@@ -65,13 +73,14 @@ export const updateDevice = async (req, res, next) => {
 };
 
 export const deleteDevice = async (req, res, next) => {
-	const device = await Device.findOne({ plateNumber: req.params.plateNumber });
+	const device = await Device.findOneAndDelete({
+		_id: req.params.deviceId,
+		user: req.user._id,
+	});
 
 	if (!device) {
 		return next(new AppError("No device found with this id!", 404));
 	}
-
-	await Device.findOneAndDelete({ plateNumber: req.params.plateNumber });
 
 	res.status(204).json({
 		status: "success",
@@ -81,24 +90,19 @@ export const deleteDevice = async (req, res, next) => {
 };
 
 export const updateDeviceLastLocation = async record => {
-	const device = await Device.findOne({ _id: record.deviceId });
+	const device = await Device.findOne({ _id: record.deviceId, user: req.user._id });
 
 	if (!device) {
 		return next(new AppError("Device not found!", 404));
 	}
 
-	device.lastLocation = { type: "Point", coordinates: [record.lng, record.lat] };
-	// if (record.speed > 0) device.status = 'Moving';
+	device.lastRecord = record;
 
 	device.status = record.status ? record.status : record.speed > 0 ? "Moving" : "Parking";
 
-	device.speed = record.speed;
-
 	await device.save();
 
-	console.log(
-		`Updated device ${device.plateNumber} location to [${record.lng}, ${record.lat}], speed to: ${record.speed} and status to: ${record.status}`,
-	);
+	console.log(`Updated device ${device._id} last record to ${record}`);
 
 	return device.user;
 };

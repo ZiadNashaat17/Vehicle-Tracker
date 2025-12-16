@@ -83,6 +83,24 @@ export const getUser = async (req, res, next) => {
 	}
 };
 
+export const getAllUsers = async (req, res, next) => {
+	try {
+		const token = req.headers.authorization.split(" ")[1];
+
+		const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/all`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		res.status(response.status).json(response.data);
+	} catch (error) {
+		return next(
+			new AppError(error?.response?.data?.message || "Failed", error?.response?.status || 500),
+		);
+	}
+};
+
 export const updateUser = async (req, res, next) => {
 	try {
 		const filteredBody = filterObj(req.body, "name", "email");
@@ -329,14 +347,16 @@ export const getAllDevices = async (req, res, next) => {
 	}
 };
 
-export const getDeviceWithPlateNumber = async (req, res, next) => {
+export const getDevice = async (req, res, next) => {
 	try {
 		const token = req.headers.authorization.split(" ")[1];
-		const plateNumber = req.params.plateNumber;
 
-		const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device/${plateNumber}`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const response = await axios.get(
+			`${process.env.USER_SERVICE_URL}/api/device/${req.params.deviceId}`,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
 
 		res.status(response.status).json(response.data);
 	} catch (error) {
@@ -387,6 +407,36 @@ export const deleteDevice = async (req, res, next) => {
 			new AppError(
 				error?.response?.data?.message || "Request failed",
 				error?.response?.status || 500,
+			),
+		);
+	}
+};
+
+// --------------------------------------------------- //
+
+export const getDeviceHistory = async (req, res, next) => {
+	try {
+		const token = req.headers.authorization.split(" ")[1];
+		const deviceId = req.params.deviceId;
+
+		if (!deviceId) {
+			return next(new AppError("Please enter deviceId", 400));
+		}
+
+		const response = await axios.get(
+			`${process.env.USER_SERVICE_URL}/api/device/${deviceId}/history`,
+			{
+				params: req.query,
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
+
+		res.status(200).json(response.data);
+	} catch (error) {
+		return next(
+			new AppError(
+				error.response?.data?.message || "Error getting the vehicle history!",
+				error.response?.status || 500,
 			),
 		);
 	}

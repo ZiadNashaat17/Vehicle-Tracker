@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as authController from "../controllers/authController.js";
 import * as userController from "../controllers/userController.js";
 import authenticate from "../middlewares/authenticate.js";
+import { authorizeAdmin } from "../middlewares/authorize.js";
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.get("/authenticate-user", authController.authenticateUser);
 
 router.use(authenticate);
 router.get("/", userController.getUser);
+router.get("/all", authorizeAdmin, userController.getAllUsers);
 router.patch("/update-user", userController.updateUser);
 router.patch("/change-password", authController.changePassword);
 router.patch("/deactivate-user", authController.deactivateUser);

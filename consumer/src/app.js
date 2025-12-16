@@ -7,7 +7,6 @@ import morgan from "morgan";
 config({ path: "./config.env" });
 
 import globalErrorHandler from "./middlewares/errorController.js";
-import recordRoutes from "./routes/recordsRoutes.js";
 import AppError from "./util/appError.js";
 
 const app = express();
@@ -28,8 +27,6 @@ if (process.env.NODE_ENV?.trim() === "development") {
 app.set("trust proxy", 1);
 
 app.disable("x-powered-by");
-
-app.use("/api/consumer", recordRoutes);
 
 app.use((req, _res, next) => {
 	next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

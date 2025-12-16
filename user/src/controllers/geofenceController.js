@@ -2,61 +2,9 @@ import * as turf from "@turf/turf";
 
 import Geofence from "../models/geofenceModel.js";
 import AppError from "../util/appError.js";
-import filterObj from "../util/filterObj.js";
 
 export const createGeofence = async (req, res, next) => {
-	req.body.user = req.user._id;
-	const filteredBody = filterObj(
-		req.body,
-		"name",
-		"user",
-		"type",
-		"geofence",
-		"color",
-		"active",
-		"devices",
-	);
-
-	if (process.env.NODE_ENV?.trim() === "development") {
-		console.log(filteredBody);
-	}
-
-	if (filteredBody.geofence.type === "Point") {
-		if (
-			!Array.isArray(filteredBody.geofence.coordinates) ||
-			filteredBody.geofence.coordinates[0].length !== 2 ||
-			!filteredBody.geofence.radius ||
-			filteredBody.geofence.radius < 10 ||
-			filteredBody.geofence.radius > 10000
-		) {
-			return next(
-				new AppError(
-					"Circle geofence must have center point (a point must include exactly two values) and radius. Radius must be between 10 and 10,000 meters",
-					400,
-				),
-			);
-		}
-	} else if (filteredBody.geofence.type === "Polygon") {
-		if (
-			!Array.isArray(filteredBody.geofence.coordinates[0]) ||
-			filteredBody.geofence.coordinates[0].some(
-				point => !Array.isArray(point) || point.length !== 2,
-			) ||
-			filteredBody.geofence.coordinates[0].length < 3
-		) {
-			return next(new AppError("Polygon geofence must have at least 3 points", 400));
-		}
-
-		const ring = filteredBody.geofence.coordinates[0];
-		const firstPoint = ring[0];
-		const lastPoint = ring[ring.length - 1];
-
-		if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
-			filteredBody.geofence.coordinates[0].push(firstPoint);
-		}
-	}
-
-	const geofence = await Geofence.create(filteredBody);
+	const geofence = await Geofence.create(req.filteredBody);
 
 	res.status(201).json({
 		status: "success",
@@ -65,9 +13,12 @@ export const createGeofence = async (req, res, next) => {
 };
 
 export const getAllGeofences = async (req, res, _next) => {
-	const geofences = await Geofence.find({ user: req.user._id, active: true }).cache({
-		key: req.user._id,
-	});
+	const geofences = await Geofence.find({ user: req.user._id, active: true })
+		.populate("devices")
+		.populate("user")
+		.cache({
+			key: req.user._id,
+		});
 
 	res.status(200).json({
 		status: "success",
@@ -80,7 +31,10 @@ export const getAllGeofences = async (req, res, _next) => {
 };
 
 export const getGeofence = async (req, res, next) => {
-	const geofence = await Geofence.findOne({ _id: req.params.id }).cache({ key: req.user._id });
+	const geofence = await Geofence.findOne({ _id: req.params.id, user: req.user._id })
+		.populate("devices")
+		.populate("user")
+		.cache({ key: req.user._id });
 
 	if (!geofence) {
 		return next(new AppError("No geofence found with this id", 404));
@@ -151,7 +105,7 @@ export const getGeofenceArea = async (req, res, next) => {
 };
 
 export const disableGeofence = async (req, res, next) => {
-	const geofence = await Geofence.findOne({ _id: req.params.id });
+	const geofence = await Geofence.findOne({ _id: req.params.id, user: req.user._id });
 
 	if (!geofence) {
 		return next(new AppError("No geofence found with this id", 404));
@@ -168,7 +122,7 @@ export const disableGeofence = async (req, res, next) => {
 };
 
 export const recoverGeofence = async (req, res, next) => {
-	const geofence = await Geofence.findOne({ _id: req.params.id });
+	const geofence = await Geofence.findOne({ _id: req.params.id, user: req.user._id });
 
 	if (!geofence) {
 		return next(new AppError("No geofence found with this id", 404));
@@ -185,13 +139,13 @@ export const recoverGeofence = async (req, res, next) => {
 };
 
 export const updateGeofence = async (req, res, next) => {
-	const geofence = await Geofence.findOne({ _id: req.params.id });
+	const geofence = await Geofence.findOne({ _id: req.params.id, user: req.user._id });
 
 	if (!geofence) {
 		return next(new AppError("No geofence found with this id", 404));
 	}
 
-	const updatedGeofence = await Geofence.findByIdAndUpdate(req.params.id, req.body, {
+	const updatedGeofence = await Geofence.findByIdAndUpdate(req.params.id, req.filteredBody, {
 		new: true,
 		runValidators: true,
 	});
@@ -204,7 +158,7 @@ export const updateGeofence = async (req, res, next) => {
 };
 
 export const deleteGeofence = async (req, res, next) => {
-	const geofence = await Geofence.findOne({ _id: req.params.id });
+	const geofence = await Geofence.findOne({ _id: req.params.id, user: req.user._id });
 
 	if (!geofence) {
 		return next(new AppError("Cannot find geofence with this id", 404));

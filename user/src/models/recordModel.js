@@ -20,6 +20,7 @@ const recordSchema = new Schema({
 	},
 	speed: { type: Number, required: true },
 	status: { type: String, enum: ["Moving", "Parking", "Idling", "Towed"] },
+	rotation: { type: Number, min: 0, max: 360 },
 	timestamp: { type: Date, default: Date.now() },
 });
 

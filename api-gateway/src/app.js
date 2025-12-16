@@ -7,7 +7,6 @@ import morgan from "morgan";
 config({ path: "./config.env" });
 
 import globalErrorHandler from "./middlewares/errorController.js";
-import consumerRouter from "./routes/consumerRoutes.js";
 import publisherRouter from "./routes/publisherRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
@@ -28,7 +27,6 @@ if (process.env.NODE_ENV?.trim() === "development") {
 }
 
 app.use("/api/track", publisherRouter);
-app.use("/api/device", consumerRouter);
 app.use("/api/user", userRouter);
 
 app.set("trust proxy", 1);

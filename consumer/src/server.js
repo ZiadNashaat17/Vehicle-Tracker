@@ -1,6 +1,5 @@
 import { connect, disconnect } from "mongoose";
 import app from "./app.js";
-import { closeRedis } from "./services/cache.js";
 import { consumeRabbitMQ } from "./services/consumeRabbitMQ.js";
 import { closeRedisPub, initRedisPublisher } from "./services/redisChannelPublish.js";
 
@@ -79,9 +78,6 @@ const closeResourcesAndExit = async timer => {
 		console.log("Closing MongoDB connection...");
 		await disconnect();
 		console.log("MongoDB disconnected");
-
-		console.log("Closing Redis connection...");
-		await closeRedis();
 
 		console.log("Closing Redis Publisher connection...");
 		await closeRedisPub();

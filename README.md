@@ -67,19 +67,19 @@ The system follows a microservices architecture with an API Gateway as the singl
               │ (Port 3000) │    │ (Port 3001) │   │ (Port 3002) │
               │             │    │             │   │             │
               │ - Auth/JWT  │    │ - Validate  │   │ - Process   │
-              │ - Vehicles  │    │ - Publish   │   │ - Store     │
-              │ - Devices   │    │   to Queue  │   │ - Notify    │
-              │ - Geofence  │    └──────┬──────┘   └─────┬───┬───┘
-              │ - WebSocket │           │                │   │
-              └──────┬──────┘           ▼                │   │
-                     │           ┌──────────────┐        │   │
-                     │           │   RabbitMQ   │────────┘   │
-                     │           │ Message Queue│            │
-                     │           │ (Port 5672)  │            │
-                     │           └──────────────┘            │
-                     │                                       │
-                     │           ┌──────────────┐            │
-                     └──────────▶│   MongoDB    │◀───────────┘
+              │ - Vehicles  │    │ - Publish   │   │ - Notify    │
+              │ - Devices   │    │   to Queue  │   │             │
+              │ - Geofence  │    └──────┬──────┘   └───────┬─────┘
+              │ - WebSocket │           │                  │   
+              └──────┬──────┘           ▼                  │   
+                     │           ┌──────────────┐          │   
+                     │           │   RabbitMQ   │──────────┘   
+                     │           │ Message Queue│              
+                     │           │ (Port 5672)  │            
+                     │           └──────────────┘            
+                     │                                       
+                     │           ┌──────────────┐            
+                     └──────────▶│   MongoDB    │
                                  │ (Port 27017) │
                                  │ - Users DB   │
                                  │ - Records DB │
@@ -109,7 +109,7 @@ The system follows a microservices architecture with an API Gateway as the singl
 - **API Gateway** (Port 5000): Single entry point for all client requests, routes requests to appropriate backend services, handles CORS, rate limiting, and request validation
 - **User Service** (Port 3000): Manages user authentication (JWT), vehicle management, device management, geofencing, live tracking, and WebSocket connections
 - **Publisher Service** (Port 3001): Receives GPS tracking data from IoT devices, validates it using Joi schemas, and publishes to RabbitMQ queue
-- **Consumer Service** (Port 3002): Processes messages from RabbitMQ, stores records in MongoDB, and publishes real-time updates to Redis pub/sub channel
+- **Consumer Service** (Port 3002): Processes messages from RabbitMQ and publishes real-time updates to Redis pub/sub channel (demonstrates event-driven architecture and decoupled microservices communication)
 - **RabbitMQ** (Ports 5672, 15672): Message broker for asynchronous communication between Publisher and Consumer services with management UI
 - **Redis** (Port 6379): Pub/sub messaging for real-time updates and caching layer for improved performance
 - **MongoDB** (Port 27017): Persistent data storage for users, vehicles, devices, geofences, and GPS tracking records
@@ -182,7 +182,13 @@ cd Vehicle-Tracker
    cd consumer && npm install && cd ..
    ```
 
-   Or run the `setupApp.sh` file in terminal.
+   **Or use the automated setup script:**
+
+   ```bash
+   bash setupApp.sh
+   ```
+
+   This script will automatically install all dependencies for all services.
 
 3. **Set up environment variables**
 
@@ -205,6 +211,21 @@ cd Vehicle-Tracker
 
 5. **Run each microservice**
 
+   **Option A: Start all services with one command (Recommended)**
+
+   ```bash
+   bash startApp.sh
+   ```
+
+   This script will:
+   - Start all services in the background
+   - Display each service's Process ID (PID)
+   - Show you the command to stop all services
+
+   To stop all services, use the kill command shown in the output, or press `Ctrl+C`.
+
+   **Option B: Run each service manually**
+
    Open separate terminal windows for each service:
 
    ```bash
@@ -224,8 +245,6 @@ cd Vehicle-Tracker
    cd api-gateway
    npm run start-dev  # or npm start for production
    ```
-
-   Or run `startApp.sh` file in terminal.
 
 ### Option 2: Docker Deployment (Recommended)
 
@@ -264,7 +283,7 @@ cd Vehicle-Tracker
    - RabbitMQ with health checks
    - User Service (waits for Redis and MongoDB to be healthy)
    - Publisher Service (waits for RabbitMQ to be healthy)
-   - Consumer Service (waits for RabbitMQ, Redis, and MongoDB to be healthy)
+   - Consumer Service (waits for RabbitMQ, and Redis to be healthy)
    - API Gateway (waits for all backend services to be ready)
 
 4. **View logs**
@@ -378,6 +397,16 @@ docker-compose up -d
 
 #### Local Development
 
+**Quick Start:**
+
+```bash
+# 1. Install dependencies (first time only)
+bash setupApp.sh
+
+# 2. Start all services
+bash startApp.sh
+```
+
 Each microservice runs on its own port:
 
 - **API Gateway**: `http://localhost:5000` - Single entry point for all client requests
@@ -387,16 +416,6 @@ Each microservice runs on its own port:
 
 **Access Points**:
 
-- **API Gateway**: http://localhost:5000 (Main entry point)
-- **User Service**: http://localhost:3000
-- **Publisher**: http://localhost:3001
-- **Consumer**: http://localhost:3002
-- **RabbitMQ Management UI**: http://localhost:15672 (credentials: guest/guest)
-- **MongoDB**: mongodb://localhost:27017
-- **Redis**: redis://localhost:6379
-
-Make sure all services are running and healthy for the complete system to function.
-
 ### Testing Real-time Tracking
 
 #### Option 1: Using the GPS Simulator (Recommended)
@@ -404,14 +423,17 @@ Make sure all services are running and healthy for the complete system to functi
 The easiest way to test the system is using the built-in GPS data simulator:
 
 ```bash
-# Make sure all services are running first (or use docker-compose up)
+# Make sure all services are running first
 
-# If running locally, start services in separate terminals:
-# Terminal 1: User Service
-cd user && npm start
+# For Docker:
+docker-compose up -d
 
-# Terminal 2: Publisher Service
-cd publisher && npm start
+# For Local Development:
+bash startApp.sh
+
+# Then run the GPS simulator in a new terminal:
+node publisher/src/simulateGPS.js
+```publisher && npm start
 
 # Terminal 3: Consumer Service
 cd consumer && npm start
@@ -454,18 +476,18 @@ The project includes a built-in GPS data simulator for testing without physical 
 node ./publisher/simulateGPS.js
 ```
 
-### Features
+### Quick Start
 
-- ✅ Simulate single or multiple vehicles
-- ✅ Realistic GPS coordinate movement
-- ✅ Configurable routes and speeds
-- ✅ Automatic looping through waypoints
+```bash
+# Start the simulator with default settings
+node ./publisher/src/simulateGPS.js
+``` Automatic looping through waypoints
 - ✅ Speed variations for realism (±7.5 km/h)
 - ✅ Customizable update intervals
 
 ### Configuration
 
-Edit `simulateGPS.js` to customize:
+Edit `publisher/src/simulateGPS.js` to customize:
 
 ```javascript
 const DEVICES = [
@@ -646,7 +668,7 @@ The system uses MongoDB with Mongoose for data persistence. Below are the main d
 ```
 ┌─────────────┐         ┌─────────────┐
 │    User     │────────>│   Device    │
-│  (user DB)  │ 1:N     │  (user DB)  │
+│             │ 1:N     │             │
 └──────┬──────┘         └──────┬──────┘
        │                       │
        │ 1:N                   │ 1:N
@@ -654,7 +676,7 @@ The system uses MongoDB with Mongoose for data persistence. Below are the main d
        ▼                       ▼
 ┌─────────────┐         ┌─────────────┐
 │  Geofence   │         │   Record    │
-│  (user DB)  │         │(consumer DB)│
+│             │         │             │
 └─────────────┘         └─────────────┘
 ```
 
@@ -699,7 +721,7 @@ Stores user account information with authentication and authorization.
 
 ### Device Model
 
-**Database**: `user` (User Service)
+**Database**: `vehicletracker` (User Service)
 **Collection**: `devices`
 
 Represents physical vehicles/devices being tracked. Combines vehicle and GPS device information.
@@ -723,7 +745,7 @@ Represents physical vehicles/devices being tracked. Combines vehicle and GPS dev
 
 ### Geofence Model
 
-**Database**: `user` (User Service)
+**Database**: `vehicletracker` (User Service)
 **Collection**: `geofences`
 
 Defines geographic boundaries for alerts and monitoring.
@@ -752,7 +774,7 @@ Defines geographic boundaries for alerts and monitoring.
 
 ### Record Model
 
-**Database**: `consumer` (Consumer Service)
+**Database**: `vehicletracker` (User Service)
 **Collection**: `records`
 
 Stores historical GPS tracking data.
@@ -770,8 +792,6 @@ Stores historical GPS tracking data.
 
 - Belongs to one Device
 
-**Note**: Records are stored in a separate database for scalability and are managed by the Consumer Service.
-
 ### Data Flow
 
 1. **User Registration**: Creates `User` document in user database
@@ -787,11 +807,14 @@ Vehicle-Tracker/
 ├── api-gateway/                # API Gateway (Port 5000)
 │   ├── src/
 │   │   ├── controllers/       # Request forwarding logic
-│   │   ├── middlewares/       # Error handling
+│   │   │   ├── userController.js
+│   │   │   └── publisherController.js
+│   │   ├── middlewares/      
+│   │   │   ├── authenticate.js     # Authentication Middleware
+│   │   │   └── errorController.js  # Error handling
 │   │   ├── routes/            # Route definitions
 │   │   │   ├── userRoutes.js
-│   │   │   ├── publisherRoutes.js
-│   │   │   └── consumerRoutes.js
+│   │   │   └── publisherRoutes.js
 │   │   └── util/              # Utility functions
 │   ├── app.js                 # Express app configuration
 │   ├── server.js              # API Gateway entry point
@@ -802,13 +825,16 @@ Vehicle-Tracker/
 ├── user/                       # User Microservice (Port 3000)
 │   ├── src/
 │   │   ├── controllers/       # Request handlers
+│   │   │   ├── authController.js
 │   │   │   ├── deviceController.js
 │   │   │   ├── geofenceController.js
 │   │   │   ├── liveController.js
+│   │   │   ├── recordController.js
 │   │   │   └── userController.js
 │   │   ├── models/            # Mongoose database models (MongoDB schemas)
 │   │   │   ├── deviceModel.js      # Vehicle/GPS device model (combined)
 │   │   │   ├── geofenceModel.js    # Geographic boundary model with 2dsphere index
+│   │   │   ├── recordModel.js      # GPS tracking record model (historical data)
 │   │   │   └── userModel.js        # User auth model with bcrypt & JWT methods
 │   │   ├── routes/            # API routes
 │   │   │   ├── deviceRoutes.js
@@ -822,6 +848,7 @@ Vehicle-Tracker/
 │   │   ├── middlewares/       # Middleware functions
 │   │   │   ├── authenticate.js      # JWT authentication
 │   │   │   ├── authorize.js         # Role-based authorization
+│   │   │   ├── validateGeofence     # Geofence Validation Middleware 
 │   │   │   ├── cleanCache.js        # Cache invalidation
 │   │   │   └── errorController.js   # Error handling
 │   │   └── util/              # Utility functions
@@ -836,30 +863,26 @@ Vehicle-Tracker/
 │   ├── src/
 │   │   ├── controllers/       # Track data handlers
 │   │   │   └── trackController.js
+│   │   ├── middlewares/       # Validation middleware
+│   │   │   └── validateRecord.js
 │   │   ├── routes/           # Publisher routes
 │   │   │   └── trackRoutes.js
-│   │   └── services/         # RabbitMQ publisher, validation
-│   │       ├── publishToRabbitMQ.js
-│   │       └── validateRecord.js
-│   ├── app.js                # Express app configuration
-│   ├── server.js             # Publisher entry point
-│   ├── simulateGPS.js        # GPS data simulator
+│   │   ├── services/         # RabbitMQ publisher
+│   │   │   └── publishToRabbitMQ.js
+│   │   ├── util/             # Utility functions
+│   │   │   └── appError.js
+│   │   ├── app.js            # Express app configuration
+│   │   ├── server.js         # Publisher entry point
+│   │   └── simulateGPS.js    # GPS data simulator
 │   ├── package.json          # Publisher dependencies
 │   ├── config.env            # Publisher configuration
 │   └── Dockerfile            # Publisher container image
 │
 ├── consumer/                   # Consumer Microservice (Port 3002)
 │   ├── src/
-│   │   ├── controllers/       # Record processing
-│   │   │   └── recordController.js
-│   │   ├── middlewares/       # Authentication middleware
-│   │   │   └── authenticateUser.js
-│   │   ├── models/           # Mongoose database models
-│   │   │   └── recordModel.js      # GPS tracking record model (historical data)
-│   │   ├── routes/           # Consumer routes
-│   │   │   └── recordsRoutes.js
+│   │   ├── middlewares/       
+│   │   │   └── errorController.js  # Error handling
 │   │   ├── services/         # RabbitMQ consumer, Redis pub
-│   │   │   ├── cache.js
 │   │   │   ├── consumeRabbitMQ.js
 │   │   │   └── redisChannelPublish.js
 │   │   └── util/             # Utility functions
@@ -872,13 +895,14 @@ Vehicle-Tracker/
 │   ├── server.js             # Consumer entry point
 │   ├── package.json          # Consumer dependencies
 │   ├── config.env            # Consumer configuration
-│   └── Dockerfile            # Consumer container image
 │
-
 ├── docs/
-│   └── GPS_SIMULATOR.md      # GPS simulator documentation
+│   └── GPS_SIMULATOR.md       # GPS simulator documentation
 ├── docker-compose.yml         # Docker Compose configuration for all services
-└── README.md                  # This file
+├── setupApp.sh                # Script to install all dependencies
+├── startApp.sh                # Script to start all services with one command
+├── docker-compose.yml         # Docker Compose configuration for all services
+└── README.md                  # Project README Documentation
 ```
 
 ## 🤝 Contributing

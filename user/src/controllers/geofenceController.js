@@ -3,7 +3,7 @@ import * as turf from "@turf/turf";
 import Geofence from "../models/geofenceModel.js";
 import AppError from "../util/appError.js";
 
-export const createGeofence = async (req, res, next) => {
+export const createGeofence = async (req, res, _next) => {
 	const geofence = await Geofence.create(req.filteredBody);
 
 	res.status(201).json({

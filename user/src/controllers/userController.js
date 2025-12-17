@@ -5,7 +5,7 @@ import { clearHash } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
-export const getAllUsers = async (req, res, next) => {
+export const getAllUsers = async (_req, res, _next) => {
 	const users = await User.find({ active: true });
 
 	res.status(200).json({

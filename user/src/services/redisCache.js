@@ -39,12 +39,6 @@ mongoose.Query.prototype.exec = async function () {
 	// biome-ignore lint/complexity/noArguments: <>
 	const result = await exec.apply(this, arguments);
 
-	console.log("populate", this._mongooseOptions.populate);
-
-	console.log("result: ", result);
-
-	console.log("key: ", key);
-
 	client.hSet(this.hashKey, key, JSON.stringify(result), "EX", 300);
 
 	return result;

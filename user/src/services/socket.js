@@ -1,7 +1,9 @@
+import { promisify } from "node:util";
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
 // import Device from "../models/deviceModel.js";
 import User from "../models/userModel.js";
+import AppError from "../util/appError.js";
 
 let io;
 
@@ -14,10 +16,10 @@ export const initializeSocket = httpServer => {
 
 			if (!token) return next();
 
-			const decoded = jwt.verify(token, process.env.JWT_SECRET);
+			const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 			const user = await User.findById(decoded.id);
 
-			if (!user) return next(new Error("Authentication error"));
+			if (!user) return next(new AppError("Authentication error", 401));
 
 			socket.userId = user._id.toString();
 

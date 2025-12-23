@@ -70,15 +70,15 @@ The system follows a microservices architecture with an API Gateway as the singl
               │ - Vehicles  │    │ - Publish   │   │ - Notify    │
               │ - Devices   │    │   to Queue  │   │             │
               │ - Geofence  │    └──────┬──────┘   └───────┬─────┘
-              │ - WebSocket │           │                  │   
-              └──────┬──────┘           ▼                  │   
-                     │           ┌──────────────┐          │   
-                     │           │   RabbitMQ   │──────────┘   
-                     │           │ Message Queue│              
-                     │           │ (Port 5672)  │            
-                     │           └──────────────┘            
-                     │                                       
-                     │           ┌──────────────┐            
+              │ - WebSocket │           │                  │
+              └──────┬──────┘           ▼                  │
+                     │           ┌──────────────┐          │
+                     │           │   RabbitMQ   │──────────┘
+                     │           │ Message Queue│
+                     │           │ (Port 5672)  │
+                     │           └──────────────┘
+                     │
+                     │           ┌──────────────┐
                      └──────────▶│   MongoDB    │
                                  │ (Port 27017) │
                                  │ - Users DB   │
@@ -218,6 +218,7 @@ cd Vehicle-Tracker
    ```
 
    This script will:
+
    - Start all services in the background
    - Display each service's Process ID (PID)
    - Show you the command to stop all services
@@ -422,7 +423,7 @@ Each microservice runs on its own port:
 
 The easiest way to test the system is using the built-in GPS data simulator:
 
-```bash
+````bash
 # Make sure all services are running first
 
 # For Docker:
@@ -443,7 +444,7 @@ cd api-gateway && npm start
 
 # Terminal 5: Run the GPS simulator
 node publisher/simulateGPS.js
-```
+````
 
 The simulator will:
 
@@ -478,7 +479,7 @@ node ./publisher/simulateGPS.js
 
 ### Quick Start
 
-```bash
+````bash
 # Start the simulator with default settings
 node ./publisher/src/simulateGPS.js
 ``` Automatic looping through waypoints
@@ -502,7 +503,7 @@ const DEVICES = [
 ];
 
 const UPDATE_INTERVAL = 3000; // milliseconds
-```
+````
 
 ### Use Cases
 
@@ -726,17 +727,16 @@ Stores user account information with authentication and authorization.
 
 Represents physical vehicles/devices being tracked. Combines vehicle and GPS device information.
 
-| Field          | Type     | Description                                                                    |
-| -------------- | -------- | ------------------------------------------------------------------------------ |
-| `brand`        | String   | Vehicle manufacturer (required)                                                |
-| `model`        | String   | Vehicle model name (required)                                                  |
-| `year`         | Number   | Manufacturing year (required)                                                  |
-| `plateNumber`  | String   | Unique license plate (required, indexed, unique)                               |
-| `type`         | String   | Vehicle type: `Motorcycle`, `Car`, or `Truck` (required)                       |
-| `status`       | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` (default: `Parking`) |
-| `speed`        | Number   | Current speed in km/h (default: 0)                                             |
-| `user`         | ObjectId | Reference to User (required)                                                   |
-| `lastLocation` | GeoJSON  | Last known location (Point with coordinates, default: [0, 0])                  |
+| Field         | Type     | Description                                                                    |
+| ------------- | -------- | ------------------------------------------------------------------------------ | --- |
+| `brand`       | String   | Vehicle manufacturer (required)                                                |
+| `model`       | String   | Vehicle model name (required)                                                  |
+| `year`        | Number   | Manufacturing year (required)                                                  |
+| `plateNumber` | String   | Unique license plate (required, indexed, unique)                               |
+| `type`        | String   | Vehicle type: `Motorcycle`, `Car`, or `Truck` (required)                       |
+| `status`      | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` (default: `Parking`) |     |
+| `user`        | ObjectId | Reference to User (required)                                                   |
+| `lastRecord`  | ObjectId | Reference to Record                                                            |
 
 **Relationships**:
 
@@ -809,7 +809,7 @@ Vehicle-Tracker/
 │   │   ├── controllers/       # Request forwarding logic
 │   │   │   ├── userController.js
 │   │   │   └── publisherController.js
-│   │   ├── middlewares/      
+│   │   ├── middlewares/
 │   │   │   ├── authenticate.js     # Authentication Middleware
 │   │   │   └── errorController.js  # Error handling
 │   │   ├── routes/            # Route definitions
@@ -848,7 +848,7 @@ Vehicle-Tracker/
 │   │   ├── middlewares/       # Middleware functions
 │   │   │   ├── authenticate.js      # JWT authentication
 │   │   │   ├── authorize.js         # Role-based authorization
-│   │   │   ├── validateGeofence     # Geofence Validation Middleware 
+│   │   │   ├── validateGeofence     # Geofence Validation Middleware
 │   │   │   ├── cleanCache.js        # Cache invalidation
 │   │   │   └── errorController.js   # Error handling
 │   │   └── util/              # Utility functions
@@ -880,7 +880,7 @@ Vehicle-Tracker/
 │
 ├── consumer/                   # Consumer Microservice (Port 3002)
 │   ├── src/
-│   │   ├── middlewares/       
+│   │   ├── middlewares/
 │   │   │   └── errorController.js  # Error handling
 │   │   ├── services/         # RabbitMQ consumer, Redis pub
 │   │   │   ├── consumeRabbitMQ.js

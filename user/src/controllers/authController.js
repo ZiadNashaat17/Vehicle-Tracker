@@ -4,10 +4,11 @@ import jwt from "jsonwebtoken";
 import isEmail from "validator/lib/isEmail.js";
 
 import User from "../models/userModel.js";
+import sendEmail from "../services/email.js";
 import AppError from "../util/appError.js";
 import catchAsync from "../util/catchAsync.js";
-import sendEmail from "../util/email.js";
 import filterObj from "../util/filterObj.js";
+import generateEmailTemplate from "../util/generateEmailTemplate.js";
 
 const signToken = id => {
 	return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
@@ -213,17 +214,20 @@ export const forgotPassword = async (req, res, next) => {
 	const resetToken = await user.generateResetToken();
 	await user.save();
 
-	const resetURL = `${req.protocol}://${req.get("host")}/api/user/reset-password/${resetToken}`;
+	const resetURL = `${process.env.BASE_URL}reset-password.html?token=${resetToken}`;
 
-	const emailTemplate = `
-    <h2>Password Reset Request</h2>
-    <p>Hi ${user.name},</p>
-    <p>We received a request to reset your password. Click the link below to proceed:</p>
-    <p>${resetURL}</p>
-    <p>This link will expire in 10 minutes.</p>
-    <p>If you didn't request this, please ignore this email.</p>
-    <p>Best regards,<br>Vehicle Tracker Team</p>
-  `;
+	const subject = "Password Reset Request - Vehicle Tracker";
+	const buttonText = "Reset Password";
+	const messageText =
+		"We received a request to reset your password. Click the button below to set a new password for your account. If you didn't request this, you can safely ignore this email.";
+
+	const emailTemplate = generateEmailTemplate(
+		user.name,
+		resetURL,
+		buttonText,
+		subject,
+		messageText,
+	);
 
 	await sendEmail(email, "Password Reset Request", "Hello", emailTemplate);
 
@@ -234,7 +238,7 @@ export const forgotPassword = async (req, res, next) => {
 };
 
 export const resetPassword = async (req, res, next) => {
-	const resetToken = req.params.resetToken;
+	const resetToken = req.params.token;
 	const { password, passwordConfirm } = req.body;
 
 	if (password !== passwordConfirm) {

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { config } from "dotenv";
 import express from "express";
 import rateLimit from "express-rate-limit";
@@ -17,6 +18,9 @@ const limit = rateLimit({
 	windowMs: 60 * 60 * 1000,
 	message: "Too many requests from this IP, please try again in an hour!",
 });
+const __dirname = import.meta.dirname;
+
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.use(express.json());
 app.use(helmet());

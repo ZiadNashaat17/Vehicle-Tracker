@@ -29,7 +29,7 @@ export const getUser = async (req, res, next) => {
 };
 
 export const updateUser = async (req, res, next) => {
-	const filteredBody = filterObj(req.body, "name", "email");
+	const filteredBody = filterObj(req.body, "name", "email", "profilePicture");
 
 	if (req.body.password) {
 		return next(new AppError("You cannot update password here!", 400));

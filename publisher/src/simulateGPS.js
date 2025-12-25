@@ -6,26 +6,26 @@ const UPDATE_INTERVAL = 300; // 2 seconds
 // Define multiple devices with realistic routes (simulating actual roads)
 const DEVICES = [
 	{
-		deviceId: "6941eaf7ead0b7bd564d9ccc",
+		deviceId: "694cd894fed64e8d84842658",
 		start: { lat: 30.036953, lng: 31.205739 },
 		end: { lat: 30.057834, lng: 31.217332 },
 		status: "Moving",
 		speed: 80,
 	},
 	{
-		deviceId: "6941eb32ead0b7bd564d9cd0",
+		deviceId: "694a7314f2676ceae8354ff6",
 		start: { lat: 29.987485, lng: 31.143126 },
 		end: { lat: 30.020359, lng: 31.216163 },
 		status: "Moving",
 		speed: 80,
 	},
-	{
-		deviceId: "6941eb58ead0b7bd564d9cd4",
-		start: { lat: 30.068954, lng: 31.195792 },
-		end: { lat: 30.075339, lng: 31.221846 },
-		status: "Moving",
-		speed: 80,
-	},
+	// {
+	// 	deviceId: "6941eb58ead0b7bd564d9cd4",
+	// 	start: { lat: 30.068954, lng: 31.195792 },
+	// 	end: { lat: 30.075339, lng: 31.221846 },
+	// 	status: "Moving",
+	// 	speed: 80,
+	// },
 ];
 
 class DeviceSimulator {

@@ -32,6 +32,7 @@ const userSchema = new Schema({
 		enum: ["user", "admin"],
 		default: "user",
 	},
+	profilePicture: String,
 	passwordChangedAt: {
 		type: Date,
 		select: false,

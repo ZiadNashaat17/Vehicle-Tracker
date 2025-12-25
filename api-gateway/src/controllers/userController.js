@@ -1,4 +1,5 @@
 import axios from "axios";
+import FormData from "form-data";
 import isEmail from "validator/lib/isEmail.js";
 
 import AppError from "../util/appError.js";
@@ -127,9 +128,28 @@ export const updateUser = async (req, res, next) => {
 
 		const token = req.headers.authorization.split(" ")[1];
 
+		const form = new FormData();
+		for (const key in filteredBody) {
+			form.append(key, filteredBody[key]);
+		}
+
+		if (req.file) {
+			form.append(req.file.fieldname, req.file.buffer, {
+				filename: req.file.originalname,
+				contentType: req.file.mimetype,
+			});
+		} else if (req.files) {
+			req.files.forEach(file => {
+				form.append(file.fieldname, file.buffer, {
+					filename: file.originalname,
+					contentType: file.mimetype,
+				});
+			});
+		}
+
 		const response = await axios.patch(
 			`${process.env.USER_SERVICE_URL}/api/user/update-user`,
-			filteredBody,
+			form,
 			{
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -374,9 +394,30 @@ export const updateDevice = async (req, res, next) => {
 		const token = req.headers.authorization.split(" ")[1];
 		const plateNumber = req.params.plateNumber;
 
+		const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status");
+
+		const form = new FormData();
+		for (const key in filteredBody) {
+			form.append(key, filteredBody[key]);
+		}
+
+		if (req.file) {
+			form.append(req.file.fieldname, req.file.buffer, {
+				filename: req.file.originalname,
+				contentType: req.file.mimetype,
+			});
+		} else if (req.files) {
+			req.files.forEach(file => {
+				form.append(file.fieldname, file.buffer, {
+					filename: file.originalname,
+					contentType: file.mimetype,
+				});
+			});
+		}
+
 		const response = await axios.patch(
 			`${process.env.USER_SERVICE_URL}/api/device/${plateNumber}`,
-			req.body,
+			form,
 			{ headers: { Authorization: `Bearer ${token}` } },
 		);
 

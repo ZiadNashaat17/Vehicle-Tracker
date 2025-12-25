@@ -54,7 +54,7 @@ export const getAllDevices = async (req, res, _next) => {
 };
 
 export const updateDevice = async (req, res, next) => {
-	const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status");
+	const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status", "image");
 
 	const device = await Device.findOneAndUpdate(
 		{ _id: req.params.deviceId, user: req.user._id },
@@ -66,7 +66,7 @@ export const updateDevice = async (req, res, next) => {
 		return next(new AppError("No device found with this id!", 404));
 	}
 
-	res.status(201).json({
+	res.status(200).json({
 		status: "success",
 		data: { device },
 	});

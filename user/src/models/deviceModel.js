@@ -20,6 +20,7 @@ const deviceSchema = new Schema({
 		required: true,
 		enum: ["Motorcycle", "Car", "Truck"],
 	},
+	image: String,
 	status: { type: String, default: "Parking", enum: ["Parking", "Moving", "Idling", "Towed"] },
 	lastRecord: {
 		type: Schema.Types.ObjectId,

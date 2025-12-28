@@ -85,14 +85,10 @@ export const updateUser = async (req, res, next) => {
     }
   }
 
-  const user = await User.findOneAndUpdate(
-    { _id: req.user._id },
-    filteredBody,
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).select("-_id -__v -role");
+  const user = await User.findOneAndUpdate({ _id: req.user._id }, filteredBody, {
+    new: true,
+    runValidators: true,
+  }).select("-_id -__v -role");
 
   res.status(201).json({
     status: "success",

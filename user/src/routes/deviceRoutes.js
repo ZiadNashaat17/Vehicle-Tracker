@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import {
   createDevice,
   deleteDevice,
@@ -15,22 +16,10 @@ const router = Router();
 
 router.use(authenticate);
 
-router.post(
-  "/",
-  cleanCache,
-  uploadImage("image"),
-  resizeDeviceImage,
-  createDevice
-);
+router.post("/", cleanCache, uploadImage("image"), resizeDeviceImage, createDevice);
 router.get("/", getAllDevices);
 router.get("/:deviceId", getDevice);
-router.patch(
-  "/:deviceId",
-  cleanCache,
-  uploadImage("image"),
-  resizeDeviceImage,
-  updateDevice
-);
+router.patch("/:deviceId", cleanCache, uploadImage("image"), resizeDeviceImage, updateDevice);
 router.delete("/:deviceId", cleanCache, deleteDevice);
 router.get("/:deviceId/history", getDeviceHistory);
 

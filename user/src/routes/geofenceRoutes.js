@@ -1,14 +1,15 @@
 import { Router } from "express";
+
 import {
-	checkPointInGeofence,
-	createGeofence,
-	deleteGeofence,
-	disableGeofence,
-	getAllGeofences,
-	getGeofence,
-	getGeofenceArea,
-	recoverGeofence,
-	updateGeofence,
+  checkPointInGeofence,
+  createGeofence,
+  deleteGeofence,
+  disableGeofence,
+  getAllGeofences,
+  getGeofence,
+  getGeofenceArea,
+  recoverGeofence,
+  updateGeofence,
 } from "../controllers/geofenceController.js";
 import authenticate from "../middlewares/authenticate.js";
 import cleanCache from "../middlewares/cleanCache.js";

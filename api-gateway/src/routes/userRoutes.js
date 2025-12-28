@@ -1,7 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
+
 import * as userController from "../controllers/userController.js";
 import authenticate from "../middlewares/authenticate.js";
+import AppError from "../util/appError.js";
 
 const multerStorage = multer.memoryStorage();
 
@@ -15,17 +17,13 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-const uploadImage = (fieldName) => {
+const uploadImage = fieldName => {
   return upload.single(fieldName);
 };
 
 const router = Router();
 
-router.post(
-  "/register",
-  uploadImage("profilePicture"),
-  userController.register
-);
+router.post("/register", uploadImage("profilePicture"), userController.register);
 router.post("/login", userController.login);
 router.get("/verify-email/:token", userController.verifyEmail);
 router.post("/forgot-password", userController.forgotPassword);
@@ -36,11 +34,7 @@ router.use(authenticate);
 
 router.get("/", userController.getUser);
 router.get("/all", userController.getAllUsers);
-router.patch(
-  "/update-user",
-  uploadImage("profilePicture"),
-  userController.updateUser
-);
+router.patch("/update-user", uploadImage("profilePicture"), userController.updateUser);
 router.patch("/change-password", userController.changePassword);
 router.patch("/deactivate-user", userController.deactivateUser);
 router.get("/logout", userController.logout);
@@ -49,17 +43,9 @@ router.get("/logout", userController.logout);
 router.post("/device", uploadImage("image"), userController.createDevice);
 router.get("/device", userController.getAllDevices);
 router.get("/device/:deviceId", userController.getDevice);
-router.patch(
-  "/device/:plateNumber",
-  uploadImage("image"),
-  userController.updateDevice
-);
+router.patch("/device/:plateNumber", uploadImage("image"), userController.updateDevice);
 router.delete("/device/:plateNumber", userController.deleteDevice);
-router.get(
-  "/device/:deviceId/history",
-  authenticate,
-  userController.getDeviceHistory
-);
+router.get("/device/:deviceId/history", authenticate, userController.getDeviceHistory);
 
 // --------------------------------------------------- //
 router.post("/geofence", userController.createGeofence);

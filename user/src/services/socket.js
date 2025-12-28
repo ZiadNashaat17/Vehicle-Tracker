@@ -1,6 +1,7 @@
-import { promisify } from "node:util";
 import jwt from "jsonwebtoken";
+import { promisify } from "node:util";
 import { Server } from "socket.io";
+
 // import Device from "../models/deviceModel.js";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
@@ -8,106 +9,87 @@ import AppError from "../util/appError.js";
 let io;
 
 export const initializeSocket = httpServer => {
-	io = new Server(httpServer, { cors: { origin: "*", methods: ["GET"] } });
+  io = new Server(httpServer, {
+    cors: {
+      origin: process.env.BASE_URL || "http://localhost:5000/",
+      credentials: true,
+      methods: ["GET", "POST"],
+    },
+  });
 
-	io.use(async (socket, next) => {
-		try {
-			const token = socket.handshake.auth?.token;
+  io.use(async (socket, next) => {
+    try {
+      const token = socket.handshake.auth?.token;
 
-			if (!token) return next();
+      if (!token) return next();
 
-			const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-			const user = await User.findById(decoded.id);
+      const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
 
-			if (!user) return next(new AppError("Authentication error", 401));
+      if (!user) return next(new AppError("Authentication error", 401));
 
-			socket.userId = user._id.toString();
+      socket.userId = user._id.toString();
 
-			return next();
-		} catch (_err) {
-			return next();
-		}
-	});
+      return next();
+    } catch (_err) {
+      return next();
+    }
+  });
 
-	io.on("connection", socket => {
-		if (socket.userId) {
-			console.log(`User ${socket.userId} connected (socket ${socket.id})`);
+  io.on("connection", socket => {
+    if (socket.userId) {
+      console.log(`User ${socket.userId} connected (socket ${socket.id})`);
 
-			socket.join(`user:${socket.userId}`);
+      socket.join(`user:${socket.userId}`);
 
-			console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: user:${socket.userId}`);
-		} else {
-			console.log(`Unauthenticated socket connected: ${socket.id}`);
-		}
+      console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: user:${socket.userId}`);
+    } else {
+      console.log(`Unauthenticated socket connected: ${socket.id}`);
+    }
 
-		console.log("Total connected clients:", io.engine.clientsCount);
+    console.log("Total connected clients:", io.engine.clientsCount);
 
-		// socket.on("join:device-room", async (deviceId, ack) => {
-		// 	try {
-		// 		if (!socket.userId) {
-		// 			console.log(`Unauthorized attempt to join device:${deviceId} by socket ${socket.id}`);
+    socket.on("join-chat", async chatId => {
+      socket.join(chatId);
+      console.log(`User ${socket.userId} joined chat ${chatId}`);
+    });
 
-		// 			return ack?.({ error: "Authentication required to join device room" });
-		// 		}
+    socket.on("leave-chat", chatId => {
+      socket.leave(chatId);
+      console.log(`User ${socket.userId} left chat ${chatId}`);
+    });
 
-		// 		// Verify the user owns this device
-		// 		const device = await Device.findById(deviceId);
+    socket.on("disconnect", async reason => {
+      if (socket.userId) {
+        console.log(`User ${socket.userId} disconnected`);
 
-		// 		if (!device) {
-		// 			console.log(`Device ${deviceId} not found`);
+        await User.findByIdAndUpdate(socket.userId, { status: "Offline" });
 
-		// 			return ack?.({ error: "Device not found" });
-		// 		}
+        socket.leave(socket.userId);
 
-		// 		if (device.user.toString() !== socket.userId) {
-		// 			console.log(
-		// 				`User ${socket.userId} attempted to join device:${deviceId} without permission`,
-		// 			);
-		// 			return ack?.({ error: "Not authorized to access this device" });
-		// 		}
+        socket.broadcast.emit("user-status-changed", {
+          userId: socket.userId,
+          status: "Offline",
+        });
+      } else {
+        console.log("Client disconnected:", socket.id);
+      }
 
-		// 		socket.join(`device:${deviceId}`);
+      console.log("Total connected clients:", io.engine.clientsCount);
+    });
 
-		// 		console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: device:${deviceId}`);
+    socket.on("error", error => {
+      console.error("Socket error:", socket.id, error);
+    });
+  });
 
-		// 		socket.emit("joined", { deviceId, message: "Successfully joined device room" });
-
-		// 		ack?.({ status: "ok", deviceId });
-		// 	} catch (error) {
-		// 		console.error("Error joining device room:", error);
-
-		// 		ack?.({ error: "Failed to join device room" });
-		// 	}
-		// });
-
-		// socket.on("leave:device-room", deviceId => {
-		// 	socket.leave(`device:${deviceId}`);
-
-		// 	console.log(`Socket ${socket.id} left room: device:${deviceId}`);
-		// });
-
-		socket.on("disconnect", _reason => {
-			if (socket.userId) {
-				console.log(`User ${socket.userId} disconnected`);
-			} else {
-				console.log("Client disconnected:", socket.id);
-			}
-
-			console.log("Total connected clients:", io.engine.clientsCount);
-		});
-
-		socket.on("error", error => {
-			console.error("Socket error:", socket.id, error);
-		});
-	});
-
-	console.log("Socket.IO server initialized");
-	return io;
+  console.log("Socket.IO server initialized");
+  return io;
 };
 
 export const getIO = () => {
-	if (!io) {
-		throw new Error("Socket.io not initialized!");
-	}
-	return io;
+  if (!io) {
+    throw new Error("Socket.io not initialized!");
+  }
+  return io;
 };

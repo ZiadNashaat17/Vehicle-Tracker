@@ -1,12 +1,12 @@
 export default (
-	name,
-	actionURL,
-	buttonText,
-	subject,
-	messageText,
-	warningText = "This link will expire in <strong>10 minutes</strong> for security reasons.",
+  name,
+  actionURL,
+  buttonText,
+  subject,
+  messageText,
+  warningText = "This link will expire in <strong>10 minutes</strong> for security reasons."
 ) => {
-	const temp = `
+  const temp = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -83,5 +83,5 @@ export default (
     </html>
       `;
 
-	return temp;
+  return temp;
 };

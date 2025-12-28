@@ -1,38 +1,45 @@
 {
-	"name": "client",
-	"version": "1.0.0",
-	"description": "",
-	"type": "module",
-	"main": "./src/server.js",
-	"scripts": {
-		"start": "node ./src/server.js",
-		"start-dev": "nodemon ./src/server.js",
-		"lint-format": "biome check --write"
-	},
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"@sendgrid/mail": "^8.1.6",
-		"@socket.io/redis-adapter": "^8.3.0",
-		"@turf/turf": "^7.3.1",
-		"axios": "^1.13.2",
-		"bcrypt": "^6.0.0",
-		"cloudinary": "^2.8.0",
-		"cors": "^2.8.5",
-		"dotenv": "^16.6.1",
-		"express": "^5.1.0",
-		"express-rate-limit": "^8.2.1",
-		"helmet": "^8.1.0",
-		"jsonwebtoken": "^9.0.2",
-		"mongoose": "^9.0.0",
-		"morgan": "^1.10.1",
-		"multer": "^2.0.2",
-		"redis": "^5.10.0",
-		"sharp": "^0.34.5",
-		"socket.io": "^4.8.1",
-		"validator": "^13.15.23"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "2.3.8"
-	}
+  "name": "client",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "./src/server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "start:dev": "nodemon ./src/server.js",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "@turf/turf": "^7.3.1",
+    "amqplib": "^0.10.9",
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "redis": "^5.10.0",
+    "sharp": "^0.34.5",
+    "socket.io": "^4.8.1",
+    "validator": "^13.15.23"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4"
+  }
 }

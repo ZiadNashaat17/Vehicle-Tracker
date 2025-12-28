@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "node:path";
 import stream from "node:stream";
 import sharp from "sharp";
+
 import AppError from "../util/appError.js";
 
 const __dirname = import.meta.dirname;
@@ -27,7 +28,7 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-export const uploadImage = (fieldName) => {
+export const uploadImage = fieldName => {
   return upload.single(fieldName);
 };
 
@@ -57,8 +58,7 @@ export const resizeUserImage = async (req, res, next) => {
         format: "png",
       },
       (error, result) => {
-        if (error)
-          return next(new AppError("Error uploading image to cloudinary", 500));
+        if (error) return next(new AppError("Error uploading image to cloudinary", 500));
 
         req.body.profilePicture = result.secure_url;
         next();
@@ -101,8 +101,7 @@ export const resizeDeviceImage = async (req, res, next) => {
         format: "png",
       },
       (error, result) => {
-        if (error)
-          return next(new AppError("Error uploading image to cloudinary", 500));
+        if (error) return next(new AppError("Error uploading image to cloudinary", 500));
 
         req.body.image = result.secure_url;
         next();

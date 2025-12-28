@@ -10,7 +10,7 @@ import catchAsync from "../util/catchAsync.js";
 import filterObj from "../util/filterObj.js";
 import generateEmailTemplate from "../util/generateEmailTemplate.js";
 
-const signToken = (id) => {
+const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
@@ -64,17 +64,11 @@ export const register = catchAsync(async (req, res, next) => {
     <p>Best regards,<br>Vehicle Tracker Team</p>
   `;
 
-  await sendEmail(
-    newUser.email,
-    "Verify Email Request",
-    "Hello",
-    emailTemplate
-  );
+  await sendEmail(newUser.email, "Verify Email Request", "Hello", emailTemplate);
 
   res.status(201).json({
     status: "success",
-    message:
-      "User registered successfully! Please check your email inbox to verify your email.",
+    message: "User registered successfully! Please check your email inbox to verify your email.",
   });
 });
 
@@ -132,10 +126,7 @@ export const login = async (req, res, next) => {
 
   if (!user.isVerified) {
     return next(
-      new AppError(
-        "Email is not verified! Please verify your email and try again.",
-        401
-      )
+      new AppError("Email is not verified! Please verify your email and try again.", 401)
     );
   }
 
@@ -143,10 +134,7 @@ export const login = async (req, res, next) => {
 };
 
 export const deactivateUser = async (req, res, _next) => {
-  await User.findOneAndUpdate(
-    { _id: req.user._id, isVerified: true },
-    { active: false }
-  );
+  await User.findOneAndUpdate({ _id: req.user._id, isVerified: true }, { active: false });
 
   res.status(201).json({
     status: "success",
@@ -170,10 +158,7 @@ export const reactivateUser = async (req, res, next) => {
 
   if (!user.isVerified) {
     return next(
-      new AppError(
-        "Email is not verified! Please verify your email and try again.",
-        401
-      )
+      new AppError("Email is not verified! Please verify your email and try again.", 401)
     );
   }
 
@@ -191,17 +176,13 @@ export const changePassword = async (req, res, next) => {
   const { currentPassword, newPassword, newPasswordConfirm } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return next(
-      new AppError("Please enter the current password and new password!", 400)
-    );
+    return next(new AppError("Please enter the current password and new password!", 400));
   }
 
   const user = await User.findOne({ _id: req.user._id }).select("+password");
 
   if (!(await user.isPasswordCorrect(currentPassword, user.password))) {
-    return next(
-      new AppError("The current password you entered is incorrect!", 400)
-    );
+    return next(new AppError("The current password you entered is incorrect!", 400));
   }
 
   if (newPassword !== newPasswordConfirm) {
@@ -235,10 +216,7 @@ export const forgotPassword = async (req, res, next) => {
 
   if (!user.isVerified) {
     return next(
-      new AppError(
-        "Email is not verified! Please verify your email and try again.",
-        401
-      )
+      new AppError("Email is not verified! Please verify your email and try again.", 401)
     );
   }
 
@@ -276,10 +254,7 @@ export const resetPassword = async (req, res, next) => {
     return next(new AppError("Passwords are not the same!", 400));
   }
 
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,
@@ -295,10 +270,7 @@ export const resetPassword = async (req, res, next) => {
 
   if (!user.isVerified) {
     return next(
-      new AppError(
-        "Email is not verified! Please verify your email and try again.",
-        401
-      )
+      new AppError("Email is not verified! Please verify your email and try again.", 401)
     );
   }
 
@@ -320,9 +292,7 @@ export const authenticateUser = async (req, res, next) => {
     }
 
     if (!token || token.trim() === "") {
-      return next(
-        new AppError("Please provide a valid authentication token!", 401)
-      );
+      return next(new AppError("Please provide a valid authentication token!", 401));
     }
 
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -333,9 +303,7 @@ export const authenticateUser = async (req, res, next) => {
     }
 
     if (user.passwordChangedAfter(decoded.iat)) {
-      return next(
-        new AppError("Password changed after token was issued!", 401)
-      );
+      return next(new AppError("Password changed after token was issued!", 401));
     }
 
     if (!user.isVerified) {
@@ -345,15 +313,14 @@ export const authenticateUser = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "User is authenticated!",
+      user: { user },
     });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return next(new AppError("Invalid token. Please log in again.", 401));
     }
     if (error.name === "TokenExpiredError") {
-      return next(
-        new AppError("Your token has expired. Please log in again.", 401)
-      );
+      return next(new AppError("Your token has expired. Please log in again.", 401));
     }
     return next(error);
   }

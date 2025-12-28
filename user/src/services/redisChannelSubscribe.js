@@ -1,39 +1,39 @@
-import Record from "../models/recordModel.js";
 import { createClient } from "redis";
 
 import { updateDeviceLastLocation } from "../controllers/deviceController.js";
-import { clearHash, cacheLatestRecord } from "./redisCache.js";
+import Record from "../models/recordModel.js";
+import { cacheLatestRecord, clearHash } from "./redisCache.js";
 
 let subClient;
 
 export async function initRedisSubscriber(io) {
-	subClient = createClient({ url: process.env.REDIS_URL });
-	subClient.on("error", err => console.log("Redis Subscriber Error", err));
-	subClient.on("connect", () => console.log("Redis Subscriber Connected"));
+  subClient = createClient({ url: process.env.REDIS_URL });
+  subClient.on("error", err => console.log("Redis Subscriber Error", err));
+  subClient.on("connect", () => console.log("Redis Subscriber Connected"));
 
-	await subClient.connect();
+  await subClient.connect();
 
-	await subClient.subscribe("new-record", async message => {
-		const input = JSON.parse(message);
-		console.log("User received record from consumer:", input);
+  await subClient.subscribe("new-record", async message => {
+    const input = JSON.parse(message);
+    console.log("User received record from consumer:", input);
 
-		const record = await Record.create(input);
+    const record = await Record.create(input);
 
-		console.log("new record created: ", record);
+    console.log("new record created: ", record);
 
-		cacheLatestRecord(record);
+    cacheLatestRecord(record);
 
-		const userId = await updateDeviceLastLocation(record);
+    const userId = await updateDeviceLastLocation(record);
 
-		console.log("Cleaning hash: ", userId);
-		clearHash(userId);
+    console.log("Cleaning hash: ", userId);
+    clearHash(userId);
 
-		if (io && userId) {
-			const room = `user:${userId}`;
-			io.to(room).emit("device:live", record);
-			console.log(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
-		}
-	});
+    if (io && userId) {
+      const room = `user:${userId}`;
+      io.to(room).emit("device:live", record);
+      console.log(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
+    }
+  });
 
-	console.log("Redis subscriber initialized. listening for records from consumer...");
+  console.log("Redis subscriber initialized. listening for records from consumer...");
 }

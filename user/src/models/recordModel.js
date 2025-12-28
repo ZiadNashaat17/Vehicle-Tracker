@@ -1,27 +1,27 @@
-import { model, Schema } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const recordSchema = new Schema({
-	deviceId: {
-		type: Schema.Types.ObjectId,
-		ref: "Device",
-		required: true,
-	},
-	lng: {
-		type: Number,
-		required: true,
-		min: -180,
-		max: 180,
-	},
-	lat: {
-		type: Number,
-		required: true,
-		min: -90,
-		max: 90,
-	},
-	speed: { type: Number, required: true },
-	status: { type: String, enum: ["Moving", "Parking", "Idling", "Towed"] },
-	rotation: { type: Number, min: 0, max: 360 },
-	timestamp: { type: Date, default: Date.now() },
+  deviceId: {
+    type: Schema.Types.ObjectId,
+    ref: "Device",
+    required: true,
+  },
+  lng: {
+    type: Number,
+    required: true,
+    min: -180,
+    max: 180,
+  },
+  lat: {
+    type: Number,
+    required: true,
+    min: -90,
+    max: 90,
+  },
+  speed: { type: Number, required: true },
+  status: { type: String, enum: ["Moving", "Parking", "Idling", "Towed"] },
+  rotation: { type: Number, min: 0, max: 360 },
+  timestamp: { type: Date, default: Date.now() },
 });
 
 const Record = model("Record", recordSchema);

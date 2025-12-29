@@ -5,14 +5,16 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 
-config({ path: "./config.env" });
-
 import globalErrorHandler from "./middlewares/errorController.js";
+import chatRouter from "./routes/chatRoutes.js";
 import deviceRouter from "./routes/deviceRoutes.js";
 import geofenceRouter from "./routes/geofenceRoutes.js";
 import liveRouter from "./routes/liveRoutes.js";
+import messageRouter from "./routes/messageRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
+
+config({ path: "./config.env" });
 
 const app = express();
 // const limit = rateLimit({
@@ -27,7 +29,7 @@ app.use(helmet());
 app.use(cors());
 
 if (process.env.NODE_ENV.trim() === "development") {
-	app.use(morgan("dev"));
+  app.use(morgan("dev"));
 }
 
 app.set("trust proxy", 1);
@@ -38,9 +40,11 @@ app.use("/api/user", userRouter);
 app.use("/api/device", deviceRouter);
 app.use("/api/geofence", geofenceRouter);
 app.use("/api/live", liveRouter);
+app.use("/api/chat", chatRouter);
+app.use("/api/message", messageRouter);
 
 app.use((req, _res, next) => {
-	next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(globalErrorHandler);

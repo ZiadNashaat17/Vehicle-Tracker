@@ -19,8 +19,8 @@ echo "Installing dependencies for publisher service..."
 cd publisher && npm install && cd ..
 
 echo ""
-echo "Installing dependencies for consumer service..."
-cd consumer && npm install && cd ..
+echo "Installing dependencies for chat service..."
+cd chat && npm install && cd ..
 
 echo ""
 echo "========================================="

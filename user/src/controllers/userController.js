@@ -29,19 +29,13 @@ export const getUser = async (req, res, next) => {
 };
 
 export const searchUser = async (req, res, next) => {
-  const { input } = req.params;
+  const { email } = req.params;
 
-  if (!input) {
+  if (!email) {
     return next(new AppError("Enter email or username to search!", 400));
   }
 
-  let user;
-
-  if (input && isEmail(input)) {
-    user = await User.findOne({ email: input, active: true });
-  } else if (input) {
-    user = await User.findOne({ username: input, active: true });
-  }
+  const user = await User.findOne({ email, active: true });
 
   if (!user) {
     return next(new AppError("No user found!", 404));
@@ -85,14 +79,10 @@ export const updateUser = async (req, res, next) => {
     }
   }
 
-  const user = await User.findOneAndUpdate(
-    { _id: req.user._id },
-    filteredBody,
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).select("-_id -__v -role");
+  const user = await User.findOneAndUpdate({ _id: req.user._id }, filteredBody, {
+    new: true,
+    runValidators: true,
+  }).select("-_id -__v -role");
 
   res.status(201).json({
     status: "success",

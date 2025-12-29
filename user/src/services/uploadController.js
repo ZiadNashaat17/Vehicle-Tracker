@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "node:path";
 import stream from "node:stream";
 import sharp from "sharp";
+
 import AppError from "../util/appError.js";
 
 const __dirname = import.meta.dirname;
@@ -18,16 +19,25 @@ cloudinary.config({
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image")) cb(null, true);
-  else cb(new AppError("Not an image! Please upload only images", 400), false);
+  const allowedTypes = /jpeg|jpg|png|gif|mp4|mov|pdf|doc|docx|webm|mp3|wav/;
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (mimetype) {
+    cb(null, true);
+  } else {
+    cb(new AppError("Not a supported format!", 400), false);
+  }
 };
 
-const upload = multer({
+export const upload = multer({
   storage: multerStorage,
+  limits: {
+    fileSize: 20 * 1024 * 1024,
+  },
   fileFilter: multerFilter,
 });
 
-export const uploadImage = (fieldName) => {
+export const uploadMedia = fieldName => {
   return upload.single(fieldName);
 };
 
@@ -45,7 +55,7 @@ export const resizeUserImage = async (req, res, next) => {
     const fileName = `user-${safeId}-${Date.now()}`;
 
     const buffer = await sharp(req.file.buffer)
-      .resize(500, 500)
+      .resize(600, 600)
       .toFormat("png")
       .png({ quality: 90 })
       .toBuffer();
@@ -57,8 +67,7 @@ export const resizeUserImage = async (req, res, next) => {
         format: "png",
       },
       (error, result) => {
-        if (error)
-          return next(new AppError("Error uploading image to cloudinary", 500));
+        if (error) return next(new AppError("Error uploading image to cloudinary", 500));
 
         req.body.profilePicture = result.secure_url;
         next();
@@ -76,8 +85,6 @@ export const resizeUserImage = async (req, res, next) => {
 
 export const resizeDeviceImage = async (req, res, next) => {
   try {
-    //   console.log(req.files);
-
     if (!req.file) return next();
 
     const identifier =
@@ -101,8 +108,7 @@ export const resizeDeviceImage = async (req, res, next) => {
         format: "png",
       },
       (error, result) => {
-        if (error)
-          return next(new AppError("Error uploading image to cloudinary", 500));
+        if (error) return next(new AppError("Error uploading image to cloudinary", 500));
 
         req.body.image = result.secure_url;
         next();
@@ -114,5 +120,85 @@ export const resizeDeviceImage = async (req, res, next) => {
     bufferStream.pipe(uploadStream);
   } catch (error) {
     return next(new AppError(error.message, error.statusCode));
+  }
+};
+
+export const processMessageFile = async (req, res, next) => {
+  try {
+    const { messageType } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Determine Cloudinary folder and resource type
+    let folder = "chat/";
+    let resourceType = "auto";
+
+    switch (messageType) {
+      case "image":
+        folder += "images";
+        resourceType = "image";
+        break;
+      case "video":
+        folder += "videos";
+        resourceType = "video";
+        break;
+      case "voice":
+        folder += "voice";
+        resourceType = "video"; // Cloudinary uses 'video' for audio
+        break;
+      case "document":
+        folder += "documents";
+        resourceType = "raw";
+        break;
+    }
+
+    // Upload to Cloudinary
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: resourceType,
+        allowed_formats: [
+          "jpg",
+          "png",
+          "gif",
+          "mp4",
+          "mov",
+          "pdf",
+          "doc",
+          "docx",
+          "webm",
+          "mp3",
+          "wav",
+        ],
+      },
+      (error, result) => {
+        if (error) {
+          return next(
+            new AppError(
+              error.message || "Error uploading file to cloudinary!",
+              error.statusCode || 500
+            )
+          );
+        }
+
+        req.body.mediaUrl = result.secure_url;
+        req.body.fileName = file.originalname;
+        req.body.fileSize = file.size;
+        req.body.mimeType = file.mimetype;
+        req.body.messageType = file.mimetype.split("/")[0];
+
+        next();
+      }
+    );
+
+    const bufferStream = new stream.PassThrough();
+    uploadStream.end(file.buffer);
+    bufferStream.pipe(uploadStream);
+  } catch (error) {
+    next(error);
   }
 };

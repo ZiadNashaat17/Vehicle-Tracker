@@ -11,7 +11,7 @@ services:
     depends_on:
       - user-service
       - publisher-service
-      - consumer-service
+      - chat-service
 
   user-service:
     build: ./user
@@ -41,19 +41,19 @@ services:
       rabbitmq:
         condition: service_healthy
 
-  consumer-service:
-    build: ./consumer
-    container_name: consumer-service
+  chat-service:
+    build: ./chat
+    container_name: chat-service
     ports:
       - "3002:3002"
     env_file:
-      - ./consumer/config.env
+      - ./chat/config.env
     networks:
       - app-network
     depends_on:
       rabbitmq:
         condition: service_healthy
-      redis:
+      mongo:
         condition: service_healthy
 
   mongo:

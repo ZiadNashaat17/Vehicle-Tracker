@@ -54,15 +54,7 @@ export const getAllDevices = async (req, res, _next) => {
 };
 
 export const updateDevice = async (req, res, next) => {
-  const filteredBody = filterObj(
-    req.body,
-    "brand",
-    "model",
-    "year",
-    "type",
-    "status",
-    "image"
-  );
+  const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status", "image");
 
   const device = await Device.findOneAndUpdate(
     { _id: req.params.deviceId, user: req.user._id },
@@ -97,24 +89,24 @@ export const deleteDevice = async (req, res, next) => {
   });
 };
 
-export const updateDeviceLastLocation = async (record) => {
-  const device = await Device.findOne({ _id: record.deviceId });
+export const updateDeviceLastLocation = async record => {
+  try {
+    const device = await Device.findOne({ _id: record.deviceId });
 
-  if (!device) {
-    return next(new AppError("Device not found!", 404));
+    if (!device) {
+      throw Error("Device not found!");
+    }
+
+    device.lastRecord = record;
+
+    device.status = record.status ? record.status : record.speed > 0 ? "Moving" : "Parking";
+
+    await device.save();
+
+    console.log(`Updated device ${device._id} last record to ${record}`);
+
+    return device.user;
+  } catch (error) {
+    console.log(error);
   }
-
-  device.lastRecord = record;
-
-  device.status = record.status
-    ? record.status
-    : record.speed > 0
-    ? "Moving"
-    : "Parking";
-
-  await device.save();
-
-  console.log(`Updated device ${device._id} last record to ${record}`);
-
-  return device.user;
 };

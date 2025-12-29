@@ -1,28 +1,27 @@
-import { model, Schema } from "mongoose";
-import AppError from "../util/appError.js";
+import { Schema, model } from "mongoose";
 
 const chatSchema = new Schema(
-	{
-		userIds: [
-			{
-				type: Schema.Types.ObjectId,
-				ref: "User",
-			},
-		],
-		chatType: { type: String, enum: ["Private", "Group"] },
-		lastMessage: {
-			type: Schema.Types.ObjectId,
-			ref: "Messages",
-		},
-		groupAdmin: {
-			type: Schema.Types.ObjectId,
-			ref: "User",
-		},
-		groupName: String,
-	},
-	{
-		timestamps: { createdAt: true, updatedAt: false },
-	},
+  {
+    userIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    chatType: { type: String, enum: ["Private", "Group"] },
+    lastMessage: {
+      type: Schema.Types.ObjectId,
+      ref: "Message",
+    },
+    groupAdmin: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    groupName: String,
+  },
+  {
+    timestamps: { createdAt: true, updatedAt: false },
+  }
 );
 
 chatSchema.index({ userIds: 1 });

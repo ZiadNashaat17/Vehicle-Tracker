@@ -10,70 +10,70 @@ client.on("connect", () => console.log("User Redis Client Connected"));
 await client.connect();
 
 mongoose.Query.prototype.cache = function (options = {}) {
-	this.useCache = true;
-	this.hashKey = JSON.stringify(options.key || "");
+  this.useCache = true;
+  this.hashKey = JSON.stringify(options.key || "");
 
-	return this;
+  return this;
 };
 
 mongoose.Query.prototype.exec = async function () {
-	if (!this.useCache) {
-		// biome-ignore lint/complexity/noArguments: <>
-		return exec.apply(this, arguments);
-	}
-	const key = JSON.stringify(
-		Object.assign({}, this.getQuery(), {
-			collection: this.mongooseCollection.name,
-		}),
-	);
+  if (!this.useCache) {
+    // biome-ignore lint/complexity/noArguments: <>
+    return exec.apply(this, arguments);
+  }
+  const key = JSON.stringify(
+    Object.assign({}, this.getQuery(), {
+      collection: this.mongooseCollection.name,
+    })
+  );
 
-	const cacheValue = await client.hGet(this.hashKey, key);
-	if (cacheValue) {
-		const doc = JSON.parse(cacheValue);
+  const cacheValue = await client.hGet(this.hashKey, key);
+  if (cacheValue) {
+    const doc = JSON.parse(cacheValue);
 
-		console.log("Serving from cache");
+    console.log("Serving from cache");
 
-		// Use hydrate() to properly restore Mongoose documents with populated fields
-		return Array.isArray(doc) ? doc.map(d => this.model.hydrate(d)) : this.model.hydrate(doc);
-	}
-	// biome-ignore lint/complexity/noArguments: <>
-	const result = await exec.apply(this, arguments);
+    // Use hydrate() to properly restore Mongoose documents with populated fields
+    return Array.isArray(doc) ? doc.map(d => this.model.hydrate(d)) : this.model.hydrate(doc);
+  }
+  // biome-ignore lint/complexity/noArguments: <>
+  const result = await exec.apply(this, arguments);
 
-	client.hSet(this.hashKey, key, JSON.stringify(result), "EX", 300);
+  client.hSet(this.hashKey, key, JSON.stringify(result), "EX", 300);
 
-	return result;
+  return result;
 };
 
 export const clearHash = hashKey => {
-	client.del(JSON.stringify(hashKey));
+  client.del(JSON.stringify(hashKey));
 };
 
 export const cacheLatestRecord = async record => {
-	const key = `device:${record.deviceId}`;
+  const key = `device:${record.deviceId}`;
 
-	await client.setEx(key, 3600, JSON.stringify(record));
+  await client.setEx(key, 3600, JSON.stringify(record));
 };
 
 export const getCachedRecord = async deviceId => {
-	const key = `device:${deviceId}`;
+  const key = `device:${deviceId}`;
 
-	const record = await client.get(key);
+  const record = await client.get(key);
 
-	if (!record) {
-		return null;
-	}
+  if (!record) {
+    return null;
+  }
 
-	return JSON.parse(record);
+  return JSON.parse(record);
 };
 
 export const closeRedis = async () => {
-	try {
-		if (client) {
-			await client.quit();
-			console.log("Redis disconnected");
-		}
-	} catch (error) {
-		console.error("Error closing Redis:", error);
-		throw error;
-	}
+  try {
+    if (client) {
+      await client.quit();
+      console.log("Redis disconnected");
+    }
+  } catch (error) {
+    console.error("Error closing Redis:", error);
+    throw error;
+  }
 };

@@ -18,7 +18,7 @@ export const register = async (req, res, next) => {
         contentType: req.file.mimetype,
       });
     } else if (req.files) {
-      req.files.forEach((file) => {
+      req.files.forEach(file => {
         form.append(file.fieldname, file.buffer, {
           filename: file.originalname,
           contentType: file.mimetype,
@@ -26,18 +26,13 @@ export const register = async (req, res, next) => {
       });
     }
 
-    const response = await axios.post(
-      `${process.env.USER_SERVICE_URL}/api/user/register`,
-      form
-    );
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/register`, form);
 
     res.status(response.status).json(response.data);
   } catch (error) {
     return next(
       new AppError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Registration failed",
+        error?.response?.data?.message || error?.message || "Registration failed",
         error?.response?.status || 500
       )
     );
@@ -52,13 +47,10 @@ export const login = async (req, res, next) => {
       return next(new AppError("Please enter email and password", 400));
     }
 
-    const response = await axios.post(
-      `${process.env.USER_SERVICE_URL}/api/user/login`,
-      {
-        email,
-        password,
-      }
-    );
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/login`, {
+      email,
+      password,
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -83,9 +75,7 @@ export const verifyEmail = async (req, res, next) => {
   } catch (error) {
     return next(
       new AppError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Email verification failed",
+        error?.response?.data?.message || error?.message || "Email verification failed",
         error?.response?.status || 500
       )
     );
@@ -96,8 +86,26 @@ export const getUser = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    return next(
+      new AppError(error?.response?.data?.message || "Failed", error?.response?.status || 500)
+    );
+  }
+};
+
+export const searchUser = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+
     const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/user`,
+      `${process.env.USER_SERVICE_URL}/api/user/search-user/${req.params.email}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,10 +116,7 @@ export const getUser = async (req, res, next) => {
     res.status(response.status).json(response.data);
   } catch (error) {
     return next(
-      new AppError(
-        error?.response?.data?.message || "Failed",
-        error?.response?.status || 500
-      )
+      new AppError(error?.response?.data?.message || "Failed", error?.response?.status || 500)
     );
   }
 };
@@ -120,22 +125,16 @@ export const getAllUsers = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/user/all`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/all`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
     return next(
-      new AppError(
-        error?.response?.data?.message || "Failed",
-        error?.response?.status || 500
-      )
+      new AppError(error?.response?.data?.message || "Failed", error?.response?.status || 500)
     );
   }
 };
@@ -177,7 +176,7 @@ export const updateUser = async (req, res, next) => {
         contentType: req.file.mimetype,
       });
     } else if (req.files) {
-      req.files.forEach((file) => {
+      req.files.forEach(file => {
         form.append(file.fieldname, file.buffer, {
           filename: file.originalname,
           contentType: file.mimetype,
@@ -211,9 +210,7 @@ export const changePassword = async (req, res, next) => {
     const { currentPassword, newPassword, newPasswordConfirm } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return next(
-        new AppError("Please enter the current password and new password!", 400)
-      );
+      return next(new AppError("Please enter the current password and new password!", 400));
     }
 
     if (newPassword !== newPasswordConfirm) {
@@ -255,12 +252,9 @@ export const forgotPassword = async (req, res, next) => {
       return next(new AppError("Please enter your email.", 400));
     }
 
-    const response = await axios.post(
-      `${process.env.USER_SERVICE_URL}/api/user/forgot-password`,
-      {
-        email,
-      }
-    );
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/user/forgot-password`, {
+      email,
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -279,9 +273,7 @@ export const resetPassword = async (req, res, next) => {
     const token = req.params.token;
 
     if (!password || !passwordConfirm) {
-      return next(
-        new AppError("Password and password confirm is required", 400)
-      );
+      return next(new AppError("Password and password confirm is required", 400));
     }
     if (!token) {
       return next(new AppError("You must enter the token you received", 400));
@@ -336,13 +328,10 @@ export const reactivateUser = async (req, res, next) => {
       return next(new AppError("Email and password are required", 400));
     }
 
-    const response = await axios.patch(
-      `${process.env.USER_SERVICE_URL}/api/user/reactivate-user`,
-      {
-        email,
-        password,
-      }
-    );
+    const response = await axios.patch(`${process.env.USER_SERVICE_URL}/api/user/reactivate-user`, {
+      email,
+      password,
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -359,12 +348,9 @@ export const logout = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/user/logout`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/logout`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -393,7 +379,7 @@ export const createDevice = async (req, res, next) => {
         contentType: req.file.mimetype,
       });
     } else if (req.files) {
-      req.files.forEach((file) => {
+      req.files.forEach(file => {
         form.append(file.fieldname, file.buffer, {
           filename: file.originalname,
           contentType: file.mimetype,
@@ -401,13 +387,9 @@ export const createDevice = async (req, res, next) => {
       });
     }
 
-    const response = await axios.post(
-      `${process.env.USER_SERVICE_URL}/api/device`,
-      form,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/device`, form, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -424,13 +406,10 @@ export const getAllDevices = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/device`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: req.query,
-      }
-    );
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/device`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: req.query,
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -470,14 +449,7 @@ export const updateDevice = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const plateNumber = req.params.plateNumber;
 
-    const filteredBody = filterObj(
-      req.body,
-      "brand",
-      "model",
-      "year",
-      "type",
-      "status"
-    );
+    const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status");
 
     const form = new FormData();
     for (const key in filteredBody) {
@@ -490,7 +462,7 @@ export const updateDevice = async (req, res, next) => {
         contentType: req.file.mimetype,
       });
     } else if (req.files) {
-      req.files.forEach((file) => {
+      req.files.forEach(file => {
         form.append(file.fieldname, file.buffer, {
           filename: file.originalname,
           contentType: file.mimetype,
@@ -572,13 +544,9 @@ export const createGeofence = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const response = await axios.post(
-      `${process.env.USER_SERVICE_URL}/api/geofence`,
-      req.body,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axios.post(`${process.env.USER_SERVICE_URL}/api/geofence`, req.body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -596,12 +564,9 @@ export const getGeofence = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const geofenceId = req.params.id;
 
-    const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/geofence/${geofenceId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -618,12 +583,9 @@ export const getAllGeofences = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/geofence`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/geofence`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {
@@ -713,9 +675,7 @@ export const checkInsideGeofence = async (req, res, next) => {
     const { geofenceId, lng, lat } = req.body;
 
     if (!geofenceId || !lng || !lat) {
-      return next(
-        new AppError("Please enter geofence id, longitude and latitude", 400)
-      );
+      return next(new AppError("Please enter geofence id, longitude and latitude", 400));
     }
 
     const response = await axios.post(
@@ -790,12 +750,9 @@ export const trackLive = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const deviceId = req.params.deviceId;
 
-    const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/live/${deviceId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/live/${deviceId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.status(response.status).json(response.data);
   } catch (error) {

@@ -20,11 +20,27 @@ const chatSchema = new Schema(
     groupName: String,
   },
   {
-    timestamps: { createdAt: true, updatedAt: false },
+    timestamps: {
+      createdAt: true,
+      updatedAt: false,
+    },
+    toJSON: {
+      versionKey: false,
+    },
+    toObject: {
+      versionKey: false,
+    },
   }
 );
 
 chatSchema.index({ userIds: 1 });
+
+chatSchema.pre(/^find/, function () {
+  this.populate("userIds", "name email status profilePicture").populate(
+    "lastMessage",
+    "text mediaUrl"
+  );
+});
 
 const Chat = model("Chat", chatSchema);
 

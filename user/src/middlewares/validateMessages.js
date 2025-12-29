@@ -4,7 +4,7 @@ import AppError from "../util/appError.js";
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: <>
 export default async (req, res, next) => {
-  const { receiverId, message } = req.body;
+  const { receiverId, messageType, text, mediaUrl } = req.body;
   const senderId = req.user._id;
 
   if (!receiverId || !isValidObjectId(receiverId)) {
@@ -15,8 +15,14 @@ export default async (req, res, next) => {
     return next(new AppError("You cannot send message to yourself!", 400));
   }
 
-  if (!message || !message.trim()) {
-    return next(new AppError("Message cannot be empty!", 400));
+  if (messageType === "text") {
+    if (!text || !text.trim()) {
+      return next(new AppError("Message cannot be empty!", 400));
+    }
+  } else if (messageType && messageType !== "text") {
+    if (!mediaUrl) {
+      return next(new AppError("Message cannot be empty!", 400));
+    }
   }
 
   next();

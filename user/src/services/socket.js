@@ -31,7 +31,7 @@ export const initializeSocket = httpServer => {
       socket.userId = user._id.toString();
 
       return next();
-    } catch (_err) {
+    } catch (err) {
       return next();
     }
   });

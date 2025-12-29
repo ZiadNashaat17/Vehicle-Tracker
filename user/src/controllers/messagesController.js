@@ -4,40 +4,140 @@ import { getIO } from "../services/socket.js";
 import AppError from "../util/appError.js";
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: <>
+// export const createMessage = async (req, res, next) => {
+//   const { receiverId, message } = req.body;
+//   const senderId = req.user._id;
+
+//   let chat = await Chat.findOne({ userIds: { $all: [senderId, receiverId], $size: 2 } });
+
+//   if (!chat) {
+//     chat = await Chat.create({ userIds: [senderId, receiverId] });
+//   }
+
+//   const newMessage = await Message.create({
+//     chatId: chat._id,
+//     senderId,
+//     receiverId,
+//     message,
+//   });
+
+//   chat.lastMessage = newMessage._id;
+//   await chat.save();
+
+//   await newMessage.populate("senderId", "name status");
+//   await newMessage.populate("receiverId", "name status");
+
+//   // Emit to socket room
+//   const io = getIO();
+//   io.to(chat._id.toString()).emit("new-message", {
+//     chatId: chat._id,
+//     message: newMessage,
+//   });
+
+//   res.status(201).json({
+//     status: "success",
+//     data: { message: newMessage },
+//   });
+// };
+
 export const createMessage = async (req, res, next) => {
-  const { receiverId, message } = req.body;
-  const senderId = req.user._id;
+  try {
+    const { chatId, receiverId, mediaUrl, text, fileName, fileSize, mimeType, messageType } =
+      req.body;
+    const senderId = req.user._id;
 
-  let chat = await Chat.findOne({ userIds: { $all: [senderId, receiverId], $size: 2 } });
+    // Find or create chat
+    let chat;
+    if (chatId) {
+      chat = await Chat.findById(chatId);
+    } else if (receiverId) {
+      chat = await Chat.findOne({
+        userIds: { $all: [senderId, receiverId], $size: 2 },
+      });
 
-  if (!chat) {
-    chat = await Chat.create({ userIds: [senderId, receiverId] });
+      if (!chat) {
+        chat = await Chat.create({ userIds: [senderId, receiverId] });
+      }
+    } else {
+      return next(new AppError("Either chatId or receiverId is required", 400));
+    }
+
+    // Normalize sender id to string and verify chat participation robustly
+    const senderIdStr = senderId.toString();
+    const isParticipant = chat.userIds.some(u => {
+      if (!u) return false;
+      if (u._id) return u._id.toString() === senderIdStr;
+      return u.toString() === senderIdStr;
+    });
+
+    if (!isParticipant) {
+      return next(new AppError("You don't have access to this chat", 403));
+    }
+
+    // Determine the other participant's id (used as receiver fallback)
+    const otherUser = chat.userIds.find(u => {
+      if (!u) return false;
+      if (u._id) return u._id.toString() !== senderIdStr;
+      return u.toString() !== senderIdStr;
+    });
+    const computedReceiverId = receiverId || (otherUser?._id ? otherUser._id : otherUser);
+
+    let newMessage = await Message.create({
+      chatId: chat._id,
+      senderId,
+      receiverId: computedReceiverId,
+      messageType,
+      text,
+      mediaUrl, // Cloudinary URL
+      fileName,
+      fileSize,
+      mimeType,
+    });
+
+    // if (messageType === "text") {
+    //   newMessage = await Message.create({
+    //     chatId: chat._id,
+    //     senderId,
+    //     receiverId: computedReceiverId,
+    //     messageType,
+    //     text,
+    //   });
+    // } else {
+    //   // Create message
+    //   newMessage = await Message.create({
+    //     chatId: chat._id,
+    //     senderId,
+    //     receiverId: computedReceiverId,
+    //     messageType,
+    //     text,
+    //     mediaUrl, // Cloudinary URL
+    //     fileName,
+    //     fileSize,
+    //     mimeType,
+    //   });
+    // }
+
+    // Update chat's last message
+    chat.lastMessage = newMessage._id;
+    await chat.save();
+
+    await newMessage.populate("senderId", "name profilePicture");
+    await newMessage.populate("receiverId", "name profilePicture");
+
+    // Emit to socket
+    const io = getIO();
+    io.to(chat._id.toString()).emit("new-message", {
+      chatId: chat._id,
+      message: newMessage,
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: { message: newMessage },
+    });
+  } catch (error) {
+    next(error);
   }
-
-  const newMessage = await Message.create({
-    chatId: chat._id,
-    senderId,
-    receiverId,
-    message,
-  });
-
-  chat.lastMessage = newMessage._id;
-  await chat.save();
-
-  await newMessage.populate("senderId", "name status");
-  await newMessage.populate("receiverId", "name status");
-
-  // Emit to socket room
-  const io = getIO();
-  io.to(chat._id.toString()).emit("new-message", {
-    chatId: chat._id,
-    message: newMessage,
-  });
-
-  res.status(201).json({
-    status: "success",
-    data: { message: newMessage },
-  });
 };
 
 export const getMessages = async (req, res, next) => {
@@ -48,7 +148,14 @@ export const getMessages = async (req, res, next) => {
 
   const chat = await Chat.findById(chatId);
 
-  if (!chat || !chat.userIds.includes(req.user._id)) {
+  const userIdStr = req.user._id.toString();
+  const isParticipant = chat.userIds.some(u => {
+    if (!u) return false;
+    if (u._id) return u._id.toString() === userIdStr;
+    return u.toString() === userIdStr;
+  });
+
+  if (!isParticipant) {
     return next(new AppError("You don't have access for this chat!", 403));
   }
 
@@ -56,8 +163,8 @@ export const getMessages = async (req, res, next) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("senderId", "name")
-    .populate("receiverId", "name");
+    .populate("senderId", "name profilePicture")
+    .populate("receiverId", "name profilePicture");
 
   const total = await Message.countDocuments({ chatId });
 

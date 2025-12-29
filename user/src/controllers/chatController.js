@@ -132,9 +132,7 @@ export const removeUserFromGroup = async (req, res, next) => {
 export const getAllChats = async (req, res, next) => {
   const userId = req.user._id;
 
-  const chats = await Chat.find({ userIds: { $in: userId } })
-    .populate("lastMessage")
-    .populate("userIds", "name email status");
+  const chats = await Chat.find({ userIds: { $in: userId } });
 
   res.status(200).json({
     status: "success",

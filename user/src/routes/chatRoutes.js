@@ -13,10 +13,11 @@ import { validateGroupChat, validatePrivateChat } from "../middlewares/chatValid
 const router = Router();
 
 router.use(authenticate);
+
+router.get("/", getAllChats);
 router.post("/private-chat", validatePrivateChat, createPrivateChat);
 router.post("/group-chat", validateGroupChat, createGroupChat);
 router.patch("/group/add-user", addUserToGroup);
 router.patch("/group/remove-user", removeUserFromGroup);
-router.get("/", getAllChats);
 
 export default router;

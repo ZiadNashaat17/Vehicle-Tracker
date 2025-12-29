@@ -10,13 +10,13 @@ const router = Router();
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|mp4|mov|pdf|doc|docx|webm|mp3|wav/;
-  const mimetype = allowedTypes.test(file.mimetype);
+  //   const allowedTypes = /jpeg|jpg|png|gif|mp4|mov|pdf|doc|docx|webm|mp3|wav/;
+  //   const mimetype = allowedTypes.test(file.mimetype);
 
-  if (mimetype) {
+  if (file) {
     cb(null, true);
   } else {
-    cb(new AppError("Not a supported format!", 400), false);
+    cb(new AppError("No file found!", 400), false);
   }
 };
 

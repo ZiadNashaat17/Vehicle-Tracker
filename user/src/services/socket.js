@@ -1,8 +1,10 @@
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { promisify } from "node:util";
 import { Server } from "socket.io";
 
 // import Device from "../models/deviceModel.js";
+import Chat from "../models/chatModel.js";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 
@@ -21,61 +23,99 @@ export const initializeSocket = httpServer => {
     try {
       const token = socket.handshake.auth?.token;
 
-      if (!token) return next();
+      if (!token) {
+        return next(new AppError("Unauthenticated connection!", 401));
+      }
 
       const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id);
 
-      if (!user) return next(new AppError("Authentication error", 401));
+      if (!user) {
+        return next(new AppError("User not found", 404));
+      }
 
       socket.userId = user._id.toString();
-
       return next();
-    } catch (err) {
-      return next();
+    } catch (error) {
+      return next(new AppError(error.message || "Authentication error", 401));
     }
   });
 
-  io.on("connection", socket => {
-    if (socket.userId) {
-      console.log(`User ${socket.userId} connected (socket ${socket.id})`);
+  io.on("connection", async socket => {
+    console.log(`User ${socket.userId} connected (socket ${socket.id})`);
 
-      socket.join(`user:${socket.userId}`);
+    socket.join(`user:${socket.userId}`);
 
-      console.log(`Socket ${socket.id} (User ${socket.userId}) joined room: user:${socket.userId}`);
-    } else {
-      console.log(`Unauthenticated socket connected: ${socket.id}`);
+    try {
+      await User.findByIdAndUpdate(socket.userId, { status: "Online" });
+
+      socket.broadcast.emit("user-status-changed", {
+        userId: socket.userId,
+        status: "Online",
+      });
+    } catch (error) {
+      console.error(`Failed to update user status for ${socket.userId}: `, error);
     }
 
     console.log("Total connected clients:", io.engine.clientsCount);
 
     socket.on("join-chat", async chatId => {
-      socket.join(chatId);
-      console.log(`User ${socket.userId} joined chat ${chatId}`);
+      try {
+        if (!chatId || !mongoose.Types.ObjectId.isValid(chatId)) {
+          socket.emit("error", { message: "Invalid chat ID" });
+          return;
+        }
+
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+          socket.emit("error", { message: "Chat not found" });
+          return;
+        }
+
+        // Check if user is a participant
+        const isParticipant = chat.userIds.some(userId => {
+          const id = userId._id || userId; // Handle both populated and unpopulated
+          return id.toString() === socket.userId;
+        });
+
+        if (!isParticipant) {
+          socket.emit("error", { message: "You don't have access to this chat!" });
+          return;
+        }
+
+        socket.join(chatId);
+
+        socket.emit("joined-chat", { chatId, success: true });
+
+        console.log(`User ${socket.userId} joined chat ${chatId}`);
+      } catch (error) {
+        console.error("Error in join-chat:", error);
+        socket.emit("error", { message: "Failed to join chat" });
+      }
     });
 
     socket.on("leave-chat", chatId => {
-      socket.leave(chatId);
-      console.log(`User ${socket.userId} left chat ${chatId}`);
+      try {
+        socket.leave(chatId);
+        console.log(`User ${socket.userId} left chat ${chatId}`);
+      } catch (error) {
+        console.error("Error in leave-chat:", error);
+      }
     });
 
     socket.on("disconnect", async reason => {
-      if (socket.userId) {
-        console.log(`User ${socket.userId} disconnected`);
+      try {
+        console.log(`User ${socket.userId} disconnected: ${reason}`);
 
         await User.findByIdAndUpdate(socket.userId, { status: "Offline" });
-
-        socket.leave(socket.userId);
 
         socket.broadcast.emit("user-status-changed", {
           userId: socket.userId,
           status: "Offline",
         });
-      } else {
-        console.log("Client disconnected:", socket.id);
+      } catch (error) {
+        console.error(`Error handling disconnect for ${socket.userId}:`, error);
       }
-
-      console.log("Total connected clients:", io.engine.clientsCount);
     });
 
     socket.on("error", error => {

@@ -125,8 +125,8 @@ export const resizeDeviceImage = async (req, res, next) => {
 
 export const processMessageFile = async (req, res, next) => {
   try {
-    const { messageType } = req.body;
     const file = req.file;
+    const messageType = req.body.messageType || file.mimetype.split("/")[0];
 
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -145,8 +145,8 @@ export const processMessageFile = async (req, res, next) => {
         folder += "videos";
         resourceType = "video";
         break;
-      case "voice":
-        folder += "voice";
+      case "audio":
+        folder += "audio";
         resourceType = "video"; // Cloudinary uses 'video' for audio
         break;
       case "document":
@@ -178,12 +178,7 @@ export const processMessageFile = async (req, res, next) => {
       },
       (error, result) => {
         if (error) {
-          return next(
-            new AppError(
-              error.message || "Error uploading file to cloudinary!",
-              error.statusCode || 500
-            )
-          );
+          return next(new AppError(error.message || "Error uploading file to cloudinary!", 500));
         }
 
         req.body.mediaUrl = result.secure_url;

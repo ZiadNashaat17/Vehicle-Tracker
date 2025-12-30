@@ -150,9 +150,8 @@ export const getMessages = async (req, res, next) => {
 
   const userIdStr = req.user._id.toString();
   const isParticipant = chat.userIds.some(u => {
-    if (!u) return false;
-    if (u._id) return u._id.toString() === userIdStr;
-    return u.toString() === userIdStr;
+    const id = u._id || u;
+    return id.toString() === userIdStr;
   });
 
   if (!isParticipant) {

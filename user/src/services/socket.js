@@ -44,7 +44,7 @@ export const initializeSocket = httpServer => {
   io.on("connection", async socket => {
     console.log(`User ${socket.userId} connected (socket ${socket.id})`);
 
-    socket.join(`user:${socket.userId}`);
+    socket.join(socket.userId);
 
     try {
       await User.findByIdAndUpdate(socket.userId, { status: "Online" });

@@ -161,20 +161,6 @@ export const processMessageFile = async (req, res, next) => {
       {
         folder,
         resource_type: resourceType,
-        allowed_formats: [
-          "jpg",
-          "png",
-          "gif",
-          "mp4",
-          "m4a",
-          "mov",
-          "pdf",
-          "doc",
-          "docx",
-          "webm",
-          "mp3",
-          "wav",
-        ],
       },
       (error, result) => {
         if (error) {

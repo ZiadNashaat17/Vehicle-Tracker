@@ -65,9 +65,8 @@ export const createMessage = async (req, res, next) => {
     // Normalize sender id to string and verify chat participation robustly
     const senderIdStr = senderId.toString();
     const isParticipant = chat.userIds.some(u => {
-      if (!u) return false;
-      if (u._id) return u._id.toString() === senderIdStr;
-      return u.toString() === senderIdStr;
+      const id = u._id || u;
+      return id.toString() === senderIdStr;
     });
 
     if (!isParticipant) {
@@ -75,14 +74,13 @@ export const createMessage = async (req, res, next) => {
     }
 
     // Determine the other participant's id (used as receiver fallback)
-    const otherUser = chat.userIds.find(u => {
-      if (!u) return false;
-      if (u._id) return u._id.toString() !== senderIdStr;
-      return u.toString() !== senderIdStr;
+    const otherUser = chat.userIds.find(user => {
+      const id = user._id || user;
+      return id.toString() !== senderIdStr;
     });
     const computedReceiverId = receiverId || (otherUser?._id ? otherUser._id : otherUser);
 
-    let newMessage = await Message.create({
+    let message = await Message.create({
       chatId: chat._id,
       senderId,
       receiverId: computedReceiverId,
@@ -118,22 +116,28 @@ export const createMessage = async (req, res, next) => {
     // }
 
     // Update chat's last message
-    chat.lastMessage = newMessage._id;
+    chat.lastMessage = message._id;
     await chat.save();
 
-    await newMessage.populate("senderId", "name profilePicture");
-    await newMessage.populate("receiverId", "name profilePicture");
+    await message.populate("senderId", "name profilePicture");
+    await message.populate("receiverId", "name profilePicture");
 
     // Emit to socket
     const io = getIO();
+
+    io.to(req.user._id).emit("lastMessage-updated", {
+      chatId: chat._id,
+      lastMessage: message,
+    });
+
     io.to(chat._id.toString()).emit("new-message", {
       chatId: chat._id,
-      message: newMessage,
+      message,
     });
 
     res.status(201).json({
       status: "success",
-      data: { message: newMessage },
+      data: { message },
     });
   } catch (error) {
     next(error);

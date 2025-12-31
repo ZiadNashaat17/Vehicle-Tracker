@@ -1,14 +1,25 @@
-import { isValidObjectId } from "mongoose";
-
+import Chat from "../models/chatModel.js";
 import AppError from "../util/appError.js";
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: <>
 export default async (req, res, next) => {
-  const { receiverId, messageType, text, mediaUrl } = req.body;
+  const { chatId, messageType, text, mediaUrl } = req.body;
+  let { receiverId } = req.body;
   const senderId = req.user._id;
 
-  if (!receiverId || !isValidObjectId(receiverId)) {
-    return next(new AppError("No receiver id found or invalid id!", 400));
+  if (!chatId && !receiverId) {
+    return next(new AppError("You must enter either chatId or receiverId"));
+  }
+
+  if (chatId && !receiverId) {
+    const chat = await Chat.findById(chatId);
+
+    const otherUser = chat.userIds.find(user => {
+      const id = user._id || user;
+      return id.toString() !== req.user._id.toString();
+    });
+    receiverId = otherUser?._id ? otherUser._id : otherUser;
+    req.body.receiverId = receiverId;
   }
 
   if (receiverId === senderId.toString()) {

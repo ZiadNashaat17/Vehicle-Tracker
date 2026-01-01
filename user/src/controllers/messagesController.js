@@ -3,43 +3,6 @@ import Message from "../models/messageModel.js";
 import { getIO } from "../services/socket.js";
 import AppError from "../util/appError.js";
 
-// biome-ignore lint/correctness/noUnusedFunctionParameters: <>
-// export const createMessage = async (req, res, next) => {
-//   const { receiverId, message } = req.body;
-//   const senderId = req.user._id;
-
-//   let chat = await Chat.findOne({ userIds: { $all: [senderId, receiverId], $size: 2 } });
-
-//   if (!chat) {
-//     chat = await Chat.create({ userIds: [senderId, receiverId] });
-//   }
-
-//   const newMessage = await Message.create({
-//     chatId: chat._id,
-//     senderId,
-//     receiverId,
-//     message,
-//   });
-
-//   chat.lastMessage = newMessage._id;
-//   await chat.save();
-
-//   await newMessage.populate("senderId", "name status");
-//   await newMessage.populate("receiverId", "name status");
-
-//   // Emit to socket room
-//   const io = getIO();
-//   io.to(chat._id.toString()).emit("new-message", {
-//     chatId: chat._id,
-//     message: newMessage,
-//   });
-
-//   res.status(201).json({
-//     status: "success",
-//     data: { message: newMessage },
-//   });
-// };
-
 export const createMessage = async (req, res, next) => {
   try {
     const { chatId, receiverId, mediaUrl, text, fileName, fileSize, mimeType, messageType } =
@@ -91,29 +54,6 @@ export const createMessage = async (req, res, next) => {
       fileSize,
       mimeType,
     });
-
-    // if (messageType === "text") {
-    //   newMessage = await Message.create({
-    //     chatId: chat._id,
-    //     senderId,
-    //     receiverId: computedReceiverId,
-    //     messageType,
-    //     text,
-    //   });
-    // } else {
-    //   // Create message
-    //   newMessage = await Message.create({
-    //     chatId: chat._id,
-    //     senderId,
-    //     receiverId: computedReceiverId,
-    //     messageType,
-    //     text,
-    //     mediaUrl, // Cloudinary URL
-    //     fileName,
-    //     fileSize,
-    //     mimeType,
-    //   });
-    // }
 
     // Update chat's last message
     chat.lastMessage = message._id;

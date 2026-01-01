@@ -6,13 +6,13 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import morgan from "morgan";
 import path from "node:path";
 
-config({ path: "./config.env" });
-
 import globalErrorHandler from "./middlewares/errorController.js";
 import chatRouter from "./routes/chatRoutes.js";
 import publisherRouter from "./routes/publisherRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
+
+config({ path: "./config.env" });
 
 const app = express();
 const limit = rateLimit({

@@ -1,17 +1,26 @@
+import { createAdapter } from "@socket.io/redis-adapter";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { promisify } from "node:util";
+// import Device from "../models/deviceModel.js";
+import { createClient } from "redis";
 import { Server } from "socket.io";
 
-// import Device from "../models/deviceModel.js";
 import Chat from "../models/chatModel.js";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 
 let io;
 
-export const initializeSocket = httpServer => {
+export const initializeSocket = async httpServer => {
+  const pubClient = createClient({ url: process.env.REDIS_URL || "redis://localhost:6379" });
+  const subClient = pubClient.duplicate();
+
+  await pubClient.connect();
+  await subClient.connect();
+
   io = new Server(httpServer, {
+    adapter: createAdapter(pubClient, subClient),
     cors: {
       origin: process.env.BASE_URL || "http://localhost:5000/",
       credentials: true,

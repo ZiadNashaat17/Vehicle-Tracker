@@ -5,7 +5,8 @@ import { clearHash } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
-export const getAllUsers = async (_req, res, _next) => {
+// eslint-disable-next-line no-unused-vars
+export const getAllUsers = async (_req, res, next) => {
   const users = await User.find({ active: true });
 
   res.status(200).json({
@@ -91,7 +92,8 @@ export const updateUser = async (req, res, next) => {
   });
 };
 
-export const logout = async (req, res, _next) => {
+// eslint-disable-next-line no-unused-vars
+export const logout = async (req, res, next) => {
   clearHash(req.user._id);
 
   res.status(200).json({

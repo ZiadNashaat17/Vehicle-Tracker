@@ -24,11 +24,12 @@ const messagesSchema = new Schema(
     fileName: String, // original filename
     messageType: {
       type: String,
-      enum: ["text", "image", "video", "application", "audio"],
+      enum: ["text", "image", "video", "file", "audio"],
       default: "text",
     },
     fileSize: Number,
     mimeType: String,
+    fileExtension: String,
     seen: {
       type: Boolean,
       default: false,

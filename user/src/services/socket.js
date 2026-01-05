@@ -7,6 +7,7 @@ import { createClient } from "redis";
 import { Server } from "socket.io";
 
 import Chat from "../models/chatModel.js";
+import Message from "../models/messageModel.js";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 
@@ -30,7 +31,8 @@ export const initializeSocket = async httpServer => {
 
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth?.token;
+      const token =
+        socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(" ")[1];
 
       if (!token) {
         return next(new AppError("Unauthenticated connection!", 401));
@@ -93,6 +95,21 @@ export const initializeSocket = async httpServer => {
         }
 
         socket.join(chatId);
+
+        // Mark unseen messages as seen
+        const updateResult = await Message.updateMany(
+          { chatId, receiverId: socket.userId, seen: false },
+          { $set: { seen: true, seenAt: Date.now() } }
+        );
+
+        if (updateResult.modifiedCount > 0) {
+          io.to(chatId).emit("messages-read", {
+            chatId,
+            readerId: socket.userId,
+            count: updateResult.modifiedCount,
+            seenAt: Date.now(),
+          });
+        }
 
         socket.emit("joined-chat", { chatId, success: true });
 

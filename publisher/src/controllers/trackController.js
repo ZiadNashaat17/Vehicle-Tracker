@@ -12,7 +12,7 @@ export const trackController = async (req, res, next) => {
       message: "Record received and queued for processing",
       data: record,
     });
-  } catch (_error) {
+  } catch (error) {
     next(new AppError("Error in publishing record to rabbitmq queue!", 500));
   }
 };

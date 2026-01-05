@@ -32,7 +32,7 @@ const userSchema = new Schema({
     enum: ["user", "admin"],
     default: "user",
   },
-  status: { type: String, enum: ["O nline", "Offline"] },
+  status: { type: String, enum: ["Online", "Offline"], default: "Offline" },
   profilePicture: String,
   passwordChangedAt: {
     type: Date,

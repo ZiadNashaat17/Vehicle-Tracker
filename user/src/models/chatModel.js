@@ -20,10 +20,7 @@ const chatSchema = new Schema(
     groupName: String,
   },
   {
-    timestamps: {
-      createdAt: true,
-      updatedAt: false,
-    },
+    timestamps: true,
     toJSON: {
       versionKey: false,
     },

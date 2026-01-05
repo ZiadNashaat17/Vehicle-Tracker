@@ -1,4 +1,5 @@
 import Chat from "../models/chatModel.js";
+import Message from "../models/messageModel.js";
 import AppError from "../util/appError.js";
 
 export const createPrivateChat = async (req, res, next) => {
@@ -132,11 +133,27 @@ export const removeUserFromGroup = async (req, res, next) => {
 export const getAllChats = async (req, res, next) => {
   const userId = req.user._id;
 
-  const chats = await Chat.find({ userIds: { $in: userId } });
+  const chats = await Chat.find({ userIds: { $in: userId } }).sort({ updatedAt: -1 });
+
+  const chatsWithUnreadCount = await Promise.all(
+    chats.map(async chat => {
+      const unreadCount = await Message.countDocuments({
+        chatId: chat._id,
+        receiverId: userId,
+        // senderId: { $ne: userId },
+        seen: false,
+      });
+
+      return {
+        ...chat.toObject(),
+        unreadCount,
+      };
+    })
+  );
 
   res.status(200).json({
     status: "success",
-    results: chats.length,
-    data: { chats },
+    results: chatsWithUnreadCount.length,
+    data: { chats: chatsWithUnreadCount },
   });
 };

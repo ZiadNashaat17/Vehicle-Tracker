@@ -29,7 +29,7 @@ process.on("unhandledRejection", err => {
     await connect(DB);
     console.log("User service connected to DB successfully!");
 
-    io = initializeSocket(httpServer);
+    io = await initializeSocket(httpServer);
 
     await consumeRabbitMQ(io);
 

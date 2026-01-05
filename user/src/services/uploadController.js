@@ -132,6 +132,9 @@ export const processMessageFile = async (req, res, next) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    const fileExtension = file.originalname.split(".").pop();
+    const fileName = file.originalname.split(".").slice(0, -1).join(".");
+
     // Determine Cloudinary folder and resource type
     let folder = "chat/";
     let resourceType = "auto";
@@ -149,18 +152,20 @@ export const processMessageFile = async (req, res, next) => {
         folder += "audio";
         resourceType = "video"; // Cloudinary uses 'video' for audio
         break;
-      case "document":
-        folder += "documents";
+      case "file":
+        folder += "file";
         resourceType = "raw";
         break;
     }
 
     // Upload to Cloudinary
-
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder,
         resource_type: resourceType,
+        public_id: `${fileName}_${Date.now()}`,
+        format: fileExtension,
+        ...(resourceType === "raw" && { type: "upload", flags: "attachment" }),
       },
       (error, result) => {
         if (error) {
@@ -168,10 +173,11 @@ export const processMessageFile = async (req, res, next) => {
         }
 
         req.body.mediaUrl = result.secure_url;
-        req.body.fileName = file.originalname;
+        req.body.fileName = fileName;
         req.body.fileSize = file.size;
         req.body.mimeType = file.mimetype;
-        req.body.messageType = file.mimetype.split("/")[0];
+        req.body.fileExtension = fileExtension;
+        // req.body.messageType = file.mimetype.split("/")[0];
 
         next();
       }

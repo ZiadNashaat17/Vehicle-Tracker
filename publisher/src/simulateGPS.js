@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/track";
-const UPDATE_INTERVAL = 300; // 2 seconds
+const UPDATE_INTERVAL = 2000; // 2 seconds
 
 // Define multiple devices with realistic routes (simulating actual roads)
 const DEVICES = [
@@ -275,6 +275,7 @@ class DeviceSimulator {
           `Lat ${data.lat}, Lng ${data.lng}, ` +
           `Speed ${data.speed} km/h, ` +
           `Status: ${data.status}, ` +
+          `Rotation: ${data.rotation}, ` +
           `Waypoint: ${this.currentIndex + 1}/${this.route?.length || 0}`
       );
     } catch (error) {

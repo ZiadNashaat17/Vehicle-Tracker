@@ -5,8 +5,17 @@ import AppError from "../util/appError.js";
 
 export const createMessage = async (req, res, next) => {
   try {
-    const { chatId, receiverId, mediaUrl, text, fileName, fileSize, mimeType, messageType } =
-      req.body;
+    const {
+      chatId,
+      receiverId,
+      mediaUrl,
+      text,
+      fileName,
+      fileSize,
+      mimeType,
+      fileExtension,
+      messageType,
+    } = req.body;
     const senderId = req.user._id;
 
     // Find or create chat
@@ -19,7 +28,7 @@ export const createMessage = async (req, res, next) => {
       });
 
       if (!chat) {
-        chat = await Chat.create({ userIds: [senderId, receiverId] });
+        chat = await Chat.create({ userIds: [senderId, receiverId], chatType: "Private" });
       }
     } else {
       return next(new AppError("Either chatId or receiverId is required", 400));
@@ -53,6 +62,7 @@ export const createMessage = async (req, res, next) => {
       fileName,
       fileSize,
       mimeType,
+      fileExtension,
     });
 
     // Update chat's last message
@@ -65,10 +75,11 @@ export const createMessage = async (req, res, next) => {
     // Emit to socket
     const io = getIO();
 
-    io.to(req.user._id).emit("lastMessage-updated", {
+    io.to(computedReceiverId.toString()).emit("lastMessage-updated", {
       chatId: chat._id,
       lastMessage: message,
     });
+    console.log(`Successfully emitted 'lastMessage-updated' to user ${computedReceiverId}`);
 
     io.to(chat._id.toString()).emit("new-message", {
       chatId: chat._id,

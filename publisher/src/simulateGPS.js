@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/track";
-const UPDATE_INTERVAL = 2000; // 2 seconds
+const UPDATE_INTERVAL = 300; // 2 seconds
 
 // Define multiple devices with realistic routes (simulating actual roads)
 const DEVICES = [

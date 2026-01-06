@@ -19,12 +19,12 @@ router.get("/authenticate-user", authController.authenticateUser);
 
 router.use(authenticate);
 router.get("/", userController.getUser);
-router.get("/all", authorizeAdmin, userController.getAllUsers);
+router.get("/all", userController.getAllUsers);
 router.patch(
   "/update-user",
   uploadMedia("profilePicture"),
   resizeUserImage,
-  userController.updateUser
+  authController.updateUser
 );
 router.get("/search-user/:email", userController.searchUser);
 router.patch("/change-password", authController.changePassword);

@@ -3,7 +3,6 @@ import FormData from "form-data";
 import isEmail from "validator/lib/isEmail.js";
 
 import AppError from "../util/appError.js";
-import filterObj from "../util/filterObj.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -141,24 +140,22 @@ export const getAllUsers = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   try {
-    const filteredBody = filterObj(req.body, "name", "email");
-
     if (req.body.password) {
       return next(new AppError("You cannot update password here!", 400));
     }
 
-    if (filteredBody.email !== undefined) {
-      if (!filteredBody.email || filteredBody.email.trim() === "") {
+    if (req.body.email !== undefined) {
+      if (!req.body.email || req.body.email.trim() === "") {
         return next(new AppError("Email cannot be empty!", 400));
       }
 
-      if (!isEmail(filteredBody.email)) {
+      if (!isEmail(req.body.email)) {
         return next(new AppError("Invalid email!", 400));
       }
     }
 
-    if (filteredBody.name !== undefined) {
-      if (!filteredBody.name || filteredBody.name.trim() === "") {
+    if (req.body.name !== undefined) {
+      if (!req.body.name || req.body.name.trim() === "") {
         return next(new AppError("Name cannot be empty!", 400));
       }
     }
@@ -166,8 +163,8 @@ export const updateUser = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
 
     const form = new FormData();
-    for (const key in filteredBody) {
-      form.append(key, filteredBody[key]);
+    for (const key in req.body) {
+      form.append(key, req.body[key]);
     }
 
     if (req.file) {
@@ -449,11 +446,9 @@ export const updateDevice = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const plateNumber = req.params.plateNumber;
 
-    const filteredBody = filterObj(req.body, "brand", "model", "year", "type", "status");
-
     const form = new FormData();
-    for (const key in filteredBody) {
-      form.append(key, filteredBody[key]);
+    for (const key in req.body) {
+      form.append(key, req.body[key]);
     }
 
     if (req.file) {

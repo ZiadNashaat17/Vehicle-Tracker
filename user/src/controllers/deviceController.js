@@ -91,7 +91,7 @@ export const deleteDevice = async (req, res, next) => {
 
 export const updateDeviceLastLocation = async record => {
   try {
-    const device = await Device.findOne({ _id: record.deviceId });
+    const device = await Device.findById(record.deviceId);
 
     if (!device) {
       throw Error("Device not found!");

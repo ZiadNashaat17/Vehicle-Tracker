@@ -11,7 +11,7 @@ export const consumeRabbitMQ = async io => {
   try {
     connection = await amqp.connect(process.env.RABBITMQ_URL || "amqp://localhost:5672");
     channel = await connection.createChannel();
-    const _result = await channel.assertQueue("vehicle-tracking");
+    const result = await channel.assertQueue("vehicle-tracking");
 
     // // Purge existing messages from the queue
     // await channel.purgeQueue('vehicle-tracking');
@@ -36,9 +36,9 @@ export const consumeRabbitMQ = async io => {
         clearHash(userId);
 
         if (io && userId) {
-          const room = `user:${userId}`;
-          io.to(room).emit("device:live", record);
-          console.log(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
+          const roomId = userId.toString();
+          io.to(roomId).emit("device:live", record);
+          console.log(`Emitted live update to room: ${roomId} for device: ${record.deviceId}`);
         }
 
         if (input) {

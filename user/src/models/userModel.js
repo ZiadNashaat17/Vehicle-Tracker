@@ -17,6 +17,12 @@ const userSchema = new Schema({
     trim: true,
     validator: validator.isEmail,
   },
+  phoneNumber: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
   password: {
     type: String,
     required: true,

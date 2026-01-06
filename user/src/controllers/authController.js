@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import crypto from "node:crypto";
 import { promisify } from "node:util";
 import isEmail from "validator/lib/isEmail.js";
@@ -36,6 +37,7 @@ export const register = catchAsync(async (req, res, next) => {
     "password",
     "passwordConfirm",
     "name",
+    "phoneNumber",
     "profilePicture"
   );
 
@@ -45,6 +47,10 @@ export const register = catchAsync(async (req, res, next) => {
 
   if (!isEmail(filteredBody.email)) {
     return next(new AppError("Enter valid email", 400));
+  }
+
+  if (!isValidPhoneNumber(filteredBody.phoneNumber)) {
+    return next(new AppError("Invalid phone number", 400));
   }
 
   delete filteredBody.passwordConfirm;
@@ -75,18 +81,10 @@ export const register = catchAsync(async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
   const verificationToken = req.params.verifyToken;
 
-  if (process.env.NODE_ENV?.trim() === "development") {
-    console.log(verificationToken);
-  }
-
   const hashedVerificationToken = crypto
     .createHash("sha256")
     .update(verificationToken)
     .digest("hex");
-
-  if (process.env.NODE_ENV?.trim() === "development") {
-    console.log({ hashedVerificationToken });
-  }
 
   const user = await User.findOne({
     emailVerificationToken: hashedVerificationToken,
@@ -131,6 +129,54 @@ export const login = async (req, res, next) => {
   }
 
   createSendToken(user, 200, res);
+};
+
+export const updateUser = async (req, res, next) => {
+  const filteredBody = filterObj(req.body, "name", "email", "profilePicture", "phoneNumber");
+
+  if (req.body.password) {
+    return next(new AppError("You cannot update password here!", 400));
+  }
+
+  if (filteredBody.email !== undefined) {
+    if (!filteredBody.email || filteredBody.email.trim() === "") {
+      return next(new AppError("Email cannot be empty!", 400));
+    }
+
+    if (!isEmail(filteredBody.email)) {
+      return next(new AppError("Invalid email!", 400));
+    }
+
+    const existingUser = await User.findOne({
+      email: filteredBody.email,
+      _id: { $ne: req.user._id },
+    });
+
+    if (existingUser) {
+      return next(new AppError("Email is already in use by another user", 400));
+    }
+  }
+
+  if (filteredBody.name !== undefined) {
+    if (!filteredBody.name || filteredBody.name.trim() === "") {
+      return next(new AppError("Name cannot be empty!", 400));
+    }
+  }
+
+  if (!isValidPhoneNumber(filteredBody.phoneNumber)) {
+    return next(new AppError("Invalid phone number", 400));
+  }
+
+  const user = await User.findOneAndUpdate({ _id: req.user._id }, filteredBody, {
+    new: true,
+    runValidators: true,
+  }).select("-_id -__v -role");
+
+  res.status(201).json({
+    status: "success",
+    message: "Account updated successfully",
+    data: { user },
+  });
 };
 
 export const deactivateUser = async (req, res, _next) => {

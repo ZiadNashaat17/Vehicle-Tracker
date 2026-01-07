@@ -1,5 +1,6 @@
 import Chat from "../models/chatModel.js";
 import Message from "../models/messageModel.js";
+import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 
 export const createPrivateChat = async (req, res, next) => {
@@ -131,16 +132,46 @@ export const removeUserFromGroup = async (req, res, next) => {
 };
 
 export const getAllChats = async (req, res, next) => {
+  const { name } = req.query;
   const userId = req.user._id;
 
   const chats = await Chat.find({ userIds: { $in: userId } }).sort({ updatedAt: -1 });
+
+  const chattedUserIds = chats.flatMap(chat =>
+    chat.userIds.map(id => id._id || id).filter(id => id.toString() !== userId.toString())
+  );
+
+  if (name && name.trim()) {
+    const query = {
+      _id: { $in: chattedUserIds },
+      active: true,
+      name: { $regex: name, $options: "i" },
+    };
+
+    const users = await User.find(query).lean();
+    // const userIdStrings = users.map(user => user._id.toString());
+    const userIdSet = new Set(users.map(u => u._id.toString()));
+
+    const searchedChats = chats.filter(chat =>
+      chat.userIds.some(id => {
+        const odId = (id._id || id).toString();
+        // return odId !== userId.toString() && userIdStrings.indexOf(odId) > -1;
+        return odId !== userId.toString() && userIdSet.has(odId);
+      })
+    );
+
+    return res.status(200).json({
+      status: "success",
+      results: searchedChats.length,
+      data: { chats: searchedChats },
+    });
+  }
 
   const chatsWithUnreadCount = await Promise.all(
     chats.map(async chat => {
       const unreadCount = await Message.countDocuments({
         chatId: chat._id,
         receiverId: userId,
-        // senderId: { $ne: userId },
         seen: false,
       });
 

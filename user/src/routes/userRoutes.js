@@ -18,7 +18,7 @@ router.patch("/reactivate-user", authController.reactivateUser);
 router.get("/authenticate-user", authController.authenticateUser);
 
 router.use(authenticate);
-router.get("/", userController.getUser);
+router.get("/me", userController.getMe);
 router.get("/all", userController.getAllUsers);
 router.patch(
   "/update-user",
@@ -26,7 +26,7 @@ router.patch(
   resizeUserImage,
   authController.updateUser
 );
-router.get("/search-user/:email", userController.searchUser);
+// router.get("/search-user/:name", userController.searchUser);
 router.patch("/change-password", authController.changePassword);
 router.patch("/deactivate-user", authController.deactivateUser);
 router.get("/logout", userController.logout);

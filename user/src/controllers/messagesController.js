@@ -101,6 +101,10 @@ export const getMessages = async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 50;
   const skip = (page - 1) * limit;
 
+  if (!chatId) {
+    return next(new AppError("You must provide chat ID", 400));
+  }
+
   const chat = await Chat.findById(chatId);
 
   const userIdStr = req.user._id.toString();

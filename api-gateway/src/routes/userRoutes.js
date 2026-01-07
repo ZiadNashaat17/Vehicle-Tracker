@@ -32,9 +32,9 @@ router.patch("/reactivate-user", userController.reactivateUser);
 
 router.use(authenticate);
 
-router.get("/", userController.getUser);
+router.get("/me", userController.getMe);
 router.get("/all", userController.getAllUsers);
-router.get("/search-user/:email", userController.searchUser);
+// router.get("/search-user/:name", userController.searchUser);
 router.patch("/update-user", uploadImage("profilePicture"), userController.updateUser);
 router.patch("/change-password", userController.changePassword);
 router.patch("/deactivate-user", userController.deactivateUser);

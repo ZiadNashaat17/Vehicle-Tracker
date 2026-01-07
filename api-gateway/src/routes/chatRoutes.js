@@ -40,7 +40,7 @@ router.patch("/group/remove-user", chatController.removeUserFromGroup);
 router.post("/message", chatController.createMessage);
 router.post("/message/media", upload.single("file"), chatController.createMediaMessage);
 router.get("/message/:chatId", chatController.getMessages);
-router.patch("/message/:messageId/read", chatController.markAsRead);
+// router.patch("/message/:messageId/read", chatController.markAsRead);
 router.patch("/message/:messageId", chatController.editMessage);
 router.delete("/message/:messageId", chatController.deleteMessage);
 

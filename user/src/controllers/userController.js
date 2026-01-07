@@ -1,13 +1,22 @@
-import isEmail from "validator/lib/isEmail.js";
-
 import User from "../models/userModel.js";
 import { clearHash } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
-import filterObj from "../util/filterObj.js";
 
 // eslint-disable-next-line no-unused-vars
-export const getAllUsers = async (_req, res, next) => {
-  const users = await User.find({ active: true, role: "user" });
+export const getAllUsers = async (req, res, next) => {
+  const { name } = req.query;
+
+  let query = {
+    _id: { $ne: req.user._id },
+    active: true,
+    role: "user",
+  };
+
+  if (name && name.trim()) {
+    query.name = { $regex: name, $options: "i" };
+  }
+
+  const users = await User.find(query);
 
   res.status(200).json({
     status: "success",
@@ -16,7 +25,7 @@ export const getAllUsers = async (_req, res, next) => {
   });
 };
 
-export const getUser = async (req, res, next) => {
+export const getMe = async (req, res, next) => {
   const user = await User.findOne({ _id: req.user._id, active: true });
 
   if (!user) {
@@ -29,28 +38,8 @@ export const getUser = async (req, res, next) => {
   });
 };
 
-export const searchUser = async (req, res, next) => {
-  const { email } = req.params;
-
-  if (!email) {
-    return next(new AppError("Enter email or username to search!", 400));
-  }
-
-  const user = await User.findOne({ email, active: true });
-
-  if (!user) {
-    return next(new AppError("No user found!", 404));
-  }
-
-  res.status(200).json({
-    status: "success",
-    data: { user },
-  });
-};
-
-
-
 // eslint-disable-next-line no-unused-vars
+
 export const logout = async (req, res, next) => {
   clearHash(req.user._id);
 

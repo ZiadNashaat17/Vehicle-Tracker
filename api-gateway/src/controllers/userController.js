@@ -81,11 +81,11 @@ export const verifyEmail = async (req, res, next) => {
   }
 };
 
-export const getUser = async (req, res, next) => {
+export const getMe = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user`, {
+    const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/user/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -104,7 +104,7 @@ export const searchUser = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
 
     const response = await axios.get(
-      `${process.env.USER_SERVICE_URL}/api/user/search-user/${req.params.email}`,
+      `${process.env.USER_SERVICE_URL}/api/user/search-user/${req.params.name}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -128,6 +128,7 @@ export const getAllUsers = async (req, res, next) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      params: req.query,
     });
 
     res.status(response.status).json(response.data);

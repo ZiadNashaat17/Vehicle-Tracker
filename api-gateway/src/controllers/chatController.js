@@ -93,6 +93,7 @@ export const getAllChats = async (req, res, next) => {
 
     const response = await axios.get(`${process.env.USER_SERVICE_URL}/api/chat`, {
       headers: { Authorization: `Bearer ${token}` },
+      params: req.query,
     });
 
     res.status(response.status).json(response.data);

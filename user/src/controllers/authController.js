@@ -163,7 +163,7 @@ export const updateUser = async (req, res, next) => {
     }
   }
 
-  if (!isValidPhoneNumber(filteredBody.phoneNumber)) {
+  if (filteredBody.phoneNumber && !isValidPhoneNumber(filteredBody.phoneNumber)) {
     return next(new AppError("Invalid phone number", 400));
   }
 

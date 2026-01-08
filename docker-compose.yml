@@ -5,13 +5,12 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - ./api-gateway/config.env
+      - ./api-gateway/.env
     networks:
       - app-network
     depends_on:
       - user-service
       - publisher-service
-      - chat-service
 
   user-service:
     build: ./user
@@ -19,7 +18,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./user/config.env
+      - ./user/.env
     networks:
       - app-network
     depends_on:
@@ -34,26 +33,11 @@ services:
     ports:
       - "3001:3001"
     env_file:
-      - ./publisher/config.env
+      - ./publisher/.env
     networks:
       - app-network
     depends_on:
       rabbitmq:
-        condition: service_healthy
-
-  chat-service:
-    build: ./chat
-    container_name: chat-service
-    ports:
-      - "3002:3002"
-    env_file:
-      - ./chat/config.env
-    networks:
-      - app-network
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      mongo:
         condition: service_healthy
 
   mongo:

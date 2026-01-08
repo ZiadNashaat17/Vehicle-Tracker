@@ -14,7 +14,7 @@ import messageRouter from "./routes/messageRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
 
-config({ path: "./config.env" });
+config({ path: "./.env" });
 
 const app = express();
 // const limit = rateLimit({

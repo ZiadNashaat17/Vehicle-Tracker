@@ -1,3 +1,4 @@
+import { LOGGER } from "../logging.js";
 import Device from "../models/deviceModel.js";
 import { getCachedRecord } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
@@ -6,7 +7,7 @@ export const updateLive = async (req, res, next) => {
   const device = await Device.findOne({ _id: req.params.deviceId });
 
   if (!device) {
-    console.log("No device!");
+    LOGGER.error("No device found!");
 
     return next(new AppError("No device found with this plate number!", 404));
   }

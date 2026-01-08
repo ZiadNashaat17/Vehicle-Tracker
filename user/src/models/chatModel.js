@@ -33,7 +33,7 @@ const chatSchema = new Schema(
 chatSchema.index({ userIds: 1, chatType: 1 });
 
 chatSchema.pre(/^find/, function () {
-  this.populate("userIds").populate("lastMessage");
+  this.populate("userIds", "name email status profilePicture phoneNumber").populate("lastMessage");
 });
 
 const Chat = model("Chat", chatSchema);

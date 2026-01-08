@@ -2,6 +2,7 @@ import { connect, disconnect } from "mongoose";
 import { createServer } from "node:http";
 
 import app from "./app.js";
+import { LOGGER } from "./logging.js";
 import { consumeRabbitMQ } from "./services/consumeRabbitMQ.js";
 import { closeRedis } from "./services/redisCache.js";
 import { initializeSocket } from "./services/socket.js";
@@ -12,22 +13,22 @@ const httpServer = createServer(app);
 let io;
 
 process.on("uncaughtException", err => {
-  console.error("UNCAUGHT EXCEPTION! Shutting down immediately...");
-  console.error(err.name, err.message);
-  console.error(err.stack);
+  LOGGER.error("UNCAUGHT EXCEPTION! Shutting down immediately...");
+  LOGGER.error(err.name, err.message);
+  LOGGER.error(err.stack);
   process.exit(1);
 });
 
 process.on("unhandledRejection", err => {
-  console.error("UNHANDLED REJECTION! Shutting down...");
-  console.error(err.name, err.message);
+  LOGGER.error("UNHANDLED REJECTION! Shutting down...");
+  LOGGER.error(err.name, err.message);
   gracefulShutdown();
 });
 
 (async () => {
   try {
     await connect(DB);
-    console.log("User service connected to DB successfully!");
+    LOGGER.info("User service connected to DB successfully!");
 
     io = await initializeSocket(httpServer);
 
@@ -36,41 +37,41 @@ process.on("unhandledRejection", err => {
     // await initRedisSubscriber(io);
 
     httpServer.listen(port, () => {
-      console.log(`User service is up and running on port: ${port}`);
+      LOGGER.info(`User service is up and running on port: ${port}`);
     });
 
     process.on("SIGTERM", () => {
-      console.log("SIGTERM signal received: closing HTTP server");
+      LOGGER.info("SIGTERM signal received: closing HTTP server");
       gracefulShutdown();
     });
 
     process.on("SIGINT", () => {
-      console.log("SIGINT signal received: closing HTTP server");
+      LOGGER.info("SIGINT signal received: closing HTTP server");
       gracefulShutdown();
     });
   } catch (err) {
-    console.error("User service startup error: ", err);
+    LOGGER.error({ description: "User service startup error: ", err });
     process.exit(1);
   }
 })();
 
 const gracefulShutdown = () => {
-  console.log("Starting graceful shutdown...");
+  LOGGER.info("Starting graceful shutdown...");
 
   const forceShutdownTimer = setTimeout(() => {
-    console.error("Forced shutdown due to timeout");
+    LOGGER.error("Forced shutdown due to timeout");
     process.exit(1);
   }, 30000);
 
   if (httpServer) {
     httpServer.close(err => {
       if (err) {
-        console.error("Error closing server: ", err);
+        LOGGER.error("Error closing server: ", err);
         clearTimeout(forceShutdownTimer);
         process.exit(1);
       }
 
-      console.log("HTTP server closed. Closing other resources...");
+      LOGGER.info("HTTP server closed. Closing other resources...");
       closeResourcesAndExit(forceShutdownTimer);
     });
 
@@ -84,24 +85,24 @@ const gracefulShutdown = () => {
 const closeResourcesAndExit = async timer => {
   try {
     if (io) {
-      console.log("Closing Socket.IO connections...");
+      LOGGER.info("Closing Socket.IO connections...");
       io.close(() => {
-        console.log("Socket.IO disconnected");
+        LOGGER.info("Socket.IO disconnected");
       });
     }
 
-    console.log("Closing MongoDB connection...");
+    LOGGER.info("Closing MongoDB connection...");
     await disconnect();
-    console.log("MongoDB disconnected");
+    LOGGER.info("MongoDB disconnected");
 
-    console.log("Closing Redis connection...");
+    LOGGER.info("Closing Redis connection...");
     await closeRedis();
 
-    console.log("All resources closed successfully. Exiting.");
+    LOGGER.info("All resources closed successfully. Exiting.");
     clearTimeout(timer);
     process.exit(0);
   } catch (err) {
-    console.error("Error during resource cleanup:", err);
+    LOGGER.error("Error during resource cleanup:", err);
     clearTimeout(timer);
     process.exit(1);
   }

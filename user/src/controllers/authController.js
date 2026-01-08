@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { promisify } from "node:util";
 import isEmail from "validator/lib/isEmail.js";
 
+import { LOGGER } from "../logging.js";
 import User from "../models/userModel.js";
 import sendEmail from "../services/email.js";
 import AppError from "../util/appError.js";
@@ -54,23 +55,42 @@ export const register = catchAsync(async (req, res, next) => {
   }
 
   delete filteredBody.passwordConfirm;
-  const newUser = await User.create(filteredBody);
+  const user = await User.create(filteredBody);
 
-  const verificationToken = await newUser.generateVerificationToken();
-  await newUser.save();
+  const verificationToken = await user.generateVerificationToken();
+  await user.save();
 
   const verifyURL = `${process.env.BASE_URL}api/user/verify-email/${verificationToken}`;
 
-  const emailTemplate = `
-    <h2>Verify Email Request</h2>
-    <p>Hi ${newUser.name},</p>
-    <p>Click the link below to verify your email:</p>
-    <p>${verifyURL}</p>
-    <p>This link will expire in 10 minutes.</p>
-    <p>Best regards,<br>Vehicle Tracker Team</p>
-  `;
+  const subject = "Email Verification Request - Vehicle Tracker";
+  const buttonText = "Verify Email";
+  const messageText =
+    "We received a request to verify your email. Click the button below to verify your email. If you didn't request this, you can safely ignore this email.";
 
-  await sendEmail(newUser.email, "Verify Email Request", "Hello", emailTemplate);
+  const emailTemplate = generateEmailTemplate(
+    user.name,
+    verifyURL,
+    buttonText,
+    subject,
+    messageText
+  );
+
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Email Request",
+      text: "Verify Email",
+      html: emailTemplate,
+    });
+  } catch (error) {
+    LOGGER.error({ description: "Error sending email", error });
+
+    user.emailTokenExpires = undefined;
+    user.emailVerificationToken = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(new AppError("Error sending email. Please try again later!", 500));
+  }
 
   res.status(201).json({
     status: "success",
@@ -284,7 +304,12 @@ export const forgotPassword = async (req, res, next) => {
     messageText
   );
 
-  await sendEmail(email, "Password Reset Request", "Hello", emailTemplate);
+  await sendEmail({
+    to: user.email,
+    subject: "Password Reset Request",
+    text: "Hello",
+    html: emailTemplate,
+  });
 
   res.status(200).json({
     status: "success",

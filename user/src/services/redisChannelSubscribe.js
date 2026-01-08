@@ -1,6 +1,7 @@
 import { createClient } from "redis";
 
 import { updateDeviceLastLocation } from "../controllers/deviceController.js";
+import { LOGGER } from "../logging.js";
 import Record from "../models/recordModel.js";
 import { cacheLatestRecord, clearHash } from "./redisCache.js";
 
@@ -8,32 +9,32 @@ let subClient;
 
 export async function initRedisSubscriber(io) {
   subClient = createClient({ url: process.env.REDIS_URL });
-  subClient.on("error", err => console.log("Redis Subscriber Error", err));
-  subClient.on("connect", () => console.log("Redis Subscriber Connected"));
+  subClient.on("error", err => LOGGER.info("Redis Subscriber Error", err));
+  subClient.on("connect", () => LOGGER.info("Redis Subscriber Connected"));
 
   await subClient.connect();
 
   await subClient.subscribe("new-record", async message => {
     const input = JSON.parse(message);
-    console.log("User received record from consumer:", input);
+    LOGGER.info("User received record from consumer:", input);
 
     const record = await Record.create(input);
 
-    console.log("new record created: ", record);
+    LOGGER.info("new record created: ", record);
 
     cacheLatestRecord(record);
 
     const userId = await updateDeviceLastLocation(record);
 
-    console.log("Cleaning hash: ", userId);
+    LOGGER.info("Cleaning hash: ", userId);
     clearHash(userId);
 
     if (io && userId) {
       const room = `user:${userId}`;
       io.to(room).emit("device:live", record);
-      console.log(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
+      LOGGER.info(`Emitted live update to room: ${room} for device: ${record.deviceId}`);
     }
   });
 
-  console.log("Redis subscriber initialized. listening for records from consumer...");
+  LOGGER.info("Redis subscriber initialized. listening for records from consumer...");
 }

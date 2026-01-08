@@ -1,3 +1,4 @@
+import { LOGGER } from "../logging.js";
 import AppError from "../util/appError.js";
 
 const handleCastErrorDB = err => {
@@ -23,7 +24,7 @@ const handleJWTExpiredError = () =>
   new AppError("Your token has expired. Please try logging in again!!", 401);
 
 const sendErrorDev = (err, res) => {
-  console.log(err);
+  LOGGER.error(err);
 
   res.status(err.statusCode).json({
     status: err.status,
@@ -41,7 +42,7 @@ const sendErrorProd = (err, res) => {
       message: err.message,
     });
   } else {
-    console.log("Error!!!!!!", err.message);
+    LOGGER.error({ description: "Error!", err });
 
     res.status(500).json({
       status: "error",

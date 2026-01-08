@@ -5,10 +5,11 @@ import path from "node:path";
 import stream from "node:stream";
 import sharp from "sharp";
 
+import { LOGGER } from "../logging.js";
 import AppError from "../util/appError.js";
 
 const __dirname = import.meta.dirname;
-config({ path: path.join(__dirname, "../../", "config.env") });
+config({ path: path.join(__dirname, "../../", ".env") });
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -78,7 +79,7 @@ export const resizeUserImage = async (req, res, next) => {
     bufferStream.end(buffer);
     bufferStream.pipe(uploadStream);
   } catch (error) {
-    console.error("Image upload error:", error);
+    LOGGER.error("Image upload error:", error);
     return next(new AppError("Error processing or uploading image", 500));
   }
 };

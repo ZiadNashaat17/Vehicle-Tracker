@@ -1,6 +1,7 @@
 import amqp from "amqplib";
 
 import { updateDeviceLastLocation } from "../controllers/deviceController.js";
+import { LOGGER } from "../logging.js";
 import Record from "../models/recordModel.js";
 import { cacheLatestRecord, clearHash } from "./redisCache.js";
 
@@ -22,38 +23,38 @@ export const consumeRabbitMQ = async io => {
     channel.consume("vehicle-tracking", async message => {
       try {
         const input = JSON.parse(message.content.toString());
-        console.log(`User received record: ${JSON.stringify(input)}`);
+        LOGGER.info(`User received record: ${JSON.stringify(input)}`);
 
         const record = await Record.create(input);
 
-        console.log("new record created: ", record);
+        LOGGER.info("new record created: ", record);
 
         cacheLatestRecord(record);
 
         const userId = await updateDeviceLastLocation(record);
 
-        console.log("Cleaning hash: ", userId);
+        LOGGER.info("Cleaning hash: ", userId);
         clearHash(userId);
 
         if (io && userId) {
           const roomId = userId.toString();
           io.to(roomId).emit("device:live", record);
-          console.log(`Emitted live update to room: ${roomId} for device: ${record.deviceId}`);
+          LOGGER.info(`Emitted live update to room: ${roomId} for device: ${record.deviceId}`);
         }
 
         if (input) {
           channel.ack(message);
         }
       } catch (error) {
-        console.error("Error processing message:", error);
+        LOGGER.error("Error processing message:", error);
         // Negative acknowledge and requeue the message
         channel.nack(message, false, true);
       }
     });
 
-    console.log("Waiting for messages...");
-  } catch (err) {
-    console.error(err);
+    LOGGER.info("Waiting for messages...");
+  } catch (error) {
+    LOGGER.error({ description: "Error consuming RabbitMQ", error });
   }
 };
 
@@ -61,14 +62,14 @@ export const closeRabbitMQ = async () => {
   try {
     if (channel) {
       await channel.close();
-      console.log("RabbitMQ channel closed");
+      LOGGER.info("RabbitMQ channel closed");
     }
     if (connection) {
       await connection.close();
-      console.log("RabbitMQ connection closed");
+      LOGGER.info("RabbitMQ connection closed");
     }
   } catch (error) {
-    console.error("Error closing RabbitMQ:", error);
+    LOGGER.error({ description: "Error closing RabbitMQ:", error });
     throw error;
   }
 };

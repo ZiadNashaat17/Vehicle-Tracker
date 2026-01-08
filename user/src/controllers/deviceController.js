@@ -1,3 +1,4 @@
+import { LOGGER } from "../logging.js";
 import Device from "../models/deviceModel.js";
 import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
@@ -103,10 +104,10 @@ export const updateDeviceLastLocation = async record => {
 
     await device.save();
 
-    console.log(`Updated device ${device._id} last record to ${record}`);
+    LOGGER.info(`Updated device ${device._id} last record to ${record}`);
 
     return device.user;
   } catch (error) {
-    console.log(error);
+    LOGGER.error({ description: "Error updating last location for device", error });
   }
 };

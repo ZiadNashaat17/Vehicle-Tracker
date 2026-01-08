@@ -160,8 +160,6 @@ export const getAllChats = async (req, res, next) => {
       })
     );
 
-    console.log(searchedChats);
-
     return res.status(200).json({
       status: "success",
       results: searchedChats.length,

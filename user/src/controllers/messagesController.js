@@ -1,3 +1,4 @@
+import { LOGGER } from "../logging.js";
 import Chat from "../models/chatModel.js";
 import Message from "../models/messageModel.js";
 import { getIO } from "../services/socket.js";
@@ -79,7 +80,7 @@ export const createMessage = async (req, res, next) => {
       chatId: chat._id,
       lastMessage: message,
     });
-    console.log(`Successfully emitted 'lastMessage-updated' to user ${computedReceiverId}`);
+    LOGGER.info(`Successfully emitted 'lastMessage-updated' to user ${computedReceiverId}`);
 
     io.to(chat._id.toString()).emit("new-message", {
       chatId: chat._id,

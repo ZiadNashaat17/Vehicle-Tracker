@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { createClient } from "redis";
 import { Server } from "socket.io";
 
+import { LOGGER } from "../logging.js";
 import Chat from "../models/chatModel.js";
 import Message from "../models/messageModel.js";
 import User from "../models/userModel.js";
@@ -53,10 +54,10 @@ export const initializeSocket = async httpServer => {
   });
 
   io.on("connection", async socket => {
-    console.log(`User ${socket.userId} connected (socket ${socket.id})`);
+    LOGGER.info(`User ${socket.userId} connected (socket ${socket.id})`);
 
     socket.join(socket.userId);
-    console.log("!!!socket userId ", socket.userId);
+    LOGGER.info("!!!socket userId ", socket.userId);
 
     try {
       await User.findByIdAndUpdate(socket.userId, { status: "Online" });
@@ -66,10 +67,10 @@ export const initializeSocket = async httpServer => {
         status: "Online",
       });
     } catch (error) {
-      console.error(`Failed to update user status for ${socket.userId}: `, error);
+      LOGGER.error(`Failed to update user status for ${socket.userId}: `, error);
     }
 
-    console.log("Total connected clients:", io.engine.clientsCount);
+    LOGGER.info("Total connected clients:", io.engine.clientsCount);
 
     socket.on("join-chat", async chatId => {
       try {
@@ -114,9 +115,9 @@ export const initializeSocket = async httpServer => {
 
         socket.emit("joined-chat", { chatId, success: true });
 
-        console.log(`User ${socket.userId} joined chat ${chatId}`);
+        LOGGER.info(`User ${socket.userId} joined chat ${chatId}`);
       } catch (error) {
-        console.error("Error in join-chat:", error);
+        LOGGER.error("Error in join-chat:", error);
         socket.emit("error", { message: "Failed to join chat" });
       }
     });
@@ -124,15 +125,15 @@ export const initializeSocket = async httpServer => {
     socket.on("leave-chat", chatId => {
       try {
         socket.leave(chatId);
-        console.log(`User ${socket.userId} left chat ${chatId}`);
+        LOGGER.info(`User ${socket.userId} left chat ${chatId}`);
       } catch (error) {
-        console.error("Error in leave-chat:", error);
+        LOGGER.error("Error in leave-chat:", error);
       }
     });
 
     socket.on("disconnect", async reason => {
       try {
-        console.log(`User ${socket.userId} disconnected: ${reason}`);
+        LOGGER.info(`User ${socket.userId} disconnected: ${reason}`);
 
         await User.findByIdAndUpdate(socket.userId, { status: "Offline" });
 
@@ -141,16 +142,16 @@ export const initializeSocket = async httpServer => {
           status: "Offline",
         });
       } catch (error) {
-        console.error(`Error handling disconnect for ${socket.userId}:`, error);
+        LOGGER.error(`Error handling disconnect for ${socket.userId}:`, error);
       }
     });
 
     socket.on("error", error => {
-      console.error("Socket error:", socket.id, error);
+      LOGGER.error("Socket error:", socket.id, error);
     });
   });
 
-  console.log("Socket.IO server initialized");
+  LOGGER.info("Socket.IO server initialized");
   return io;
 };
 

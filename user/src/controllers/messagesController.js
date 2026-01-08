@@ -190,7 +190,7 @@ export const editMessage = async (req, res, next) => {
     return next(new AppError("Cannot edit messages older than 15 minutes"));
   }
 
-  message.message = newMessage;
+  message.text = newMessage;
   message.isEdited = true;
   message.editedAt = Date.now();
   await message.save();
@@ -198,7 +198,7 @@ export const editMessage = async (req, res, next) => {
   const io = getIO();
   io.to(message.chatId.toString()).emit("messageEdited", {
     messageId: message._id,
-    message: message.message,
+    message,
     editedAt: message.editedAt,
   });
 

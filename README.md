@@ -1,6 +1,6 @@
 # 🚗 Vehicle Tracker
 
-A real-time vehicle tracking system built with Node.js, featuring live location updates, geofencing, and historical route playback. The system uses a microservices architecture with an API Gateway as a single entry point, RabbitMQ for message queuing, Redis for caching and pub/sub, and WebSocket for real-time communication.
+A real-time vehicle tracking and messaging system built with Node.js, featuring live location updates, geofencing, historical route playback, and a full-featured real-time chat system. The system uses a microservices architecture with an API Gateway as a single entry point, RabbitMQ for message queuing, Redis for caching and pub/sub, Socket.IO for real-time communication, and Cloudinary for media storage.
 
 ## 📋 Table of Contents
 
@@ -21,25 +21,40 @@ A real-time vehicle tracking system built with Node.js, featuring live location 
 
 ### Core Functionality
 
-- **Real-time Vehicle Tracking**: Live location updates via WebSocket connections
+- **Real-time Vehicle Tracking**: Live location updates via WebSocket connections with rotation/bearing support
 - **Historical Route Playback**: View and analyze past vehicle routes
-- **Geofencing**: Create, manage, and monitor geographic boundaries
-- **Device Management**: Register and manage GPS tracking devices
-- **User Authentication**: Secure JWT-based authentication with email verification
+- **Geofencing**: Create, manage, and monitor Circle or Polygon geographic boundaries
+- **Device Management**: Register and manage GPS tracking devices with image uploads
+- **User Authentication**: Secure JWT-based authentication with email verification and phone number validation
 - **Role-based Access Control**: Admin and user roles with different permissions
+- **Real-time Chat System**: Full-featured private and group messaging with media support
+
+### Chat & Messaging Features
+
+- **Private Chats**: One-on-one conversations between users
+- **Group Chats**: Create groups with admin controls (add/remove users)
+- **Media Messages**: Support for images, videos, audio, and file attachments
+- **Message Management**: Edit and delete messages with real-time updates
+- **Read Receipts**: Track message seen status with timestamps
+- **Online Status**: Real-time user presence indicators (Online/Offline)
+- **Cloudinary Integration**: Secure media storage and processing
 
 ### Technical Features
 
-- **Microservices Architecture**: Separated API Gateway, User Service, Publisher Service, and Consumer Service
-- **API Gateway Pattern**: Single entry point for all client requests with request routing to backend services
-- **Message Queue**: RabbitMQ for reliable asynchronous message processing
-- **Real-time Communication**: Socket.IO with Redis adapter for scalability
+- **Microservices Architecture**: Separated API Gateway, User Service, and Publisher Service
+- **API Gateway Pattern**: Single entry point for all client requests with WebSocket proxy support
+- **Message Queue**: RabbitMQ for reliable asynchronous GPS data processing
+- **Real-time Communication**: Socket.IO with Redis adapter for horizontal scalability
 - **Caching Layer**: Redis for improved performance and pub/sub messaging
-- **Data Validation**: Joi schema validation for GPS records
-- **Security**: Helmet, rate limiting, CORS protection, and JWT authentication
+- **Data Validation**: Joi and Zod schema validation for GPS records and API inputs
+- **Image Processing**: Sharp for image resizing and optimization
+- **Media Storage**: Cloudinary for cloud-based media management
+- **Phone Validation**: libphonenumber-js for international phone number validation
+- **Security**: Helmet, rate limiting, CORS protection, bcrypt password hashing, and JWT authentication
+- **Structured Logging**: Pino for high-performance JSON logging
 - **Containerization**: Full Docker Compose deployment with health checks and dependency management
 - **Service Discovery**: Docker networking for inter-service communication
-- **GPS Data Simulator**: Built-in script for testing with simulated vehicle data
+- **GPS Data Simulator**: Built-in script with real road routes using OpenRouteService API
 
 ## 🏗 Architecture
 
@@ -54,48 +69,60 @@ The system follows a microservices architecture with an API Gateway as the singl
                   ▼                                                     ▼
            ┌────────────────────────────────────────────────────────────────────┐
            │                       API Gateway (Port 5000)                      │
-           │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
-           │  │ Auth Routes  │  │Track Routes  │  │History Routes│              │
-           │  │ User Routes  │  │   Proxy to   │  │   Proxy to   │              │
-           │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │
-           └─────────┼─────────────────┼─────────────────┼──────────────────────┘
-                     │                 │                 │
-                     ▼                 ▼                 ▼
-              ┌─────────────┐    ┌─────────────┐   ┌─────────────┐
-              │    User     │    │  Publisher  │   │  Consumer   │
-              │   Service   │    │   Service   │   │   Service   │
-              │ (Port 3000) │    │ (Port 3001) │   │ (Port 3002) │
-              │             │    │             │   │             │
-              │ - Auth/JWT  │    │ - Validate  │   │ - Process   │
-              │ - Vehicles  │    │ - Publish   │   │ - Notify    │
-              │ - Devices   │    │   to Queue  │   │             │
-              │ - Geofence  │    └──────┬──────┘   └───────┬─────┘
-              │ - WebSocket │           │                  │
-              └──────┬──────┘           ▼                  │
-                     │           ┌──────────────┐          │
-                     │           │   RabbitMQ   │──────────┘
+           │  ┌──────────────┐  ┌──────────────┐                                │
+           │  │ Auth/User    │  │ Track Routes │                                │
+           │  │ Routes       │  │   Proxy to   │                                │
+           │  └──────┬───────┘  └──────┬───────┘                                │
+           │         │    WebSocket Proxy (Socket.IO)                           │
+           └─────────┼─────────────────┼────────────────────────────────────────┘
+                     │                 │
+                     ▼                 ▼
+              ┌─────────────┐    ┌─────────────┐
+              │    User     │    │  Publisher  │
+              │   Service   │    │   Service   │
+              │ (Port 3000) │    │ (Port 3001) │
+              │             │    │             │
+              │ - Auth/JWT  │    │ - Validate  │
+              │ - Devices   │    │ - Publish   │
+              │ - Geofence  │    │   to Queue  │
+              │ - Chat/Msg  │    └──────┬──────┘
+              │ - WebSocket │           │
+              │ - Cloudinary│           ▼
+              └──────┬──────┘    ┌──────────────┐
+                     │           │   RabbitMQ   │
                      │           │ Message Queue│
                      │           │ (Port 5672)  │
-                     │           └──────────────┘
-                     │
-                     │           ┌──────────────┐
-                     └──────────▶│   MongoDB    │
-                                 │ (Port 27017) │
-                                 │ - Users DB   │
-                                 │ - Records DB │
-                                 └──────────────┘
+                     │           └──────┬───────┘
+                     │                  │
+                     ▼                  ▼
+              ┌──────────────┐   (User Service consumes
+              │   MongoDB    │    GPS data from queue)
+              │ (Port 27017) │
+              │ - Users      │
+              │ - Devices    │
+              │ - Chats      │
+              │ - Messages   │
+              │ - Geofences  │
+              │ - Records    │
+              └──────────────┘
 
                      ┌──────────────────────────┐
                      │        Redis             │
                      │     (Port 6379)          │
                      │  - Caching               │
+                     │  - Socket.IO Adapter     │
                      │  - Pub/Sub for real-time │
                      └──────────────────────────┘
                                  ▲
                                  │
-                       ┌─────────┴──────────┐
-                       │                    │
-                Consumer Service      User Service
+                           User Service
+
+              ┌──────────────────────────┐
+              │       Cloudinary         │
+              │   - Profile Pictures     │
+              │   - Device Images        │
+              │   - Chat Media Files     │
+              └──────────────────────────┘
 
                      Docker Network: app-network
               ┌─────────────────────────────────────────────────┐
@@ -106,13 +133,13 @@ The system follows a microservices architecture with an API Gateway as the singl
 
 ### Component Responsibilities
 
-- **API Gateway** (Port 5000): Single entry point for all client requests, routes requests to appropriate backend services, handles CORS, rate limiting, and request validation
-- **User Service** (Port 3000): Manages user authentication (JWT), vehicle management, device management, geofencing, live tracking, and WebSocket connections
+- **API Gateway** (Port 5000): Single entry point for all client requests, WebSocket proxy to User Service, routes requests to appropriate backend services, handles rate limiting, serves static frontend files (Chat App UI)
+- **User Service** (Port 3000): Manages user authentication (JWT), device management, geofencing, chat/messaging, live tracking, real-time WebSocket connections, RabbitMQ consumer for GPS data, and Cloudinary media uploads
 - **Publisher Service** (Port 3001): Receives GPS tracking data from IoT devices, validates it using Joi schemas, and publishes to RabbitMQ queue
-- **Consumer Service** (Port 3002): Processes messages from RabbitMQ and publishes real-time updates to Redis pub/sub channel (demonstrates event-driven architecture and decoupled microservices communication)
-- **RabbitMQ** (Ports 5672, 15672): Message broker for asynchronous communication between Publisher and Consumer services with management UI
-- **Redis** (Port 6379): Pub/sub messaging for real-time updates and caching layer for improved performance
-- **MongoDB** (Port 27017): Persistent data storage for users, vehicles, devices, geofences, and GPS tracking records
+- **RabbitMQ** (Ports 5672, 15672): Message broker for asynchronous GPS data processing with management UI
+- **Redis** (Port 6379): Socket.IO adapter for scalability, caching layer, and pub/sub messaging for real-time updates
+- **MongoDB** (Port 27017): Persistent data storage for users, devices, chats, messages, geofences, and GPS tracking records
+- **Cloudinary**: Cloud-based media storage for profile pictures, device images, and chat media files
 - **Docker Network**: All services communicate via the `app-network` bridge network with DNS-based service discovery
 - **Health Checks**: Ensures services start only when dependencies (MongoDB, Redis, RabbitMQ) are fully ready
 
@@ -128,22 +155,39 @@ The system follows a microservices architecture with an API Gateway as the singl
 
 ### Security & Validation
 
-- **JWT** - Authentication tokens
-- **bcrypt** - Password hashing
-- **Joi** - Data validation
+- **JWT** (jsonwebtoken v9.0.2) - Authentication tokens
+- **bcrypt** (v6.0.0) - Password hashing
+- **Joi** (v18.0.2) - GPS data validation (Publisher Service)
+- **Zod** (v4.3.5) - API input validation (User Service)
 - **Helmet** (v8.1.0) - Security headers
 - **express-rate-limit** (v8.2.1) - Rate limiting
 - **CORS** - Cross-Origin Resource Sharing
+- **libphonenumber-js** (v1.12.33) - Phone number validation
+
+### Media & Image Processing
+
+- **Cloudinary** (v2.8.0) - Cloud media storage
+- **Sharp** (v0.34.5) - Image resizing and optimization
+- **Multer** (v2.0.2) - File upload handling
+
+### Logging & Monitoring
+
+- **Pino** (v10.1.0) - High-performance JSON logging
+- **Morgan** - HTTP request logging
 
 ### DevOps
 
 - **Docker** & **Docker Compose** - Containerization
-- **Morgan** - HTTP request logging
 - **Nodemon** - Development auto-reload
 
 ### Email
 
-- **SendGrid** - Email service for verification
+- **Nodemailer** (v7.0.12) - Email sending
+- **SendGrid** (@sendgrid/mail v8.1.6) - Email service for verification
+
+### Geospatial
+
+- **@turf/turf** (v7.3.1) - Geospatial analysis and calculations
 
 ## 📦 Prerequisites
 
@@ -160,6 +204,12 @@ Before you begin, ensure you have the following installed:
 - **MongoDB** (v6 or higher)
 - **Redis** (v7 or higher)
 - **RabbitMQ** (v3.12 or higher)
+
+### External Services
+
+- **Cloudinary Account** - For media storage (profile pictures, device images, chat files)
+- **OpenRouteService API Key** (optional) - For GPS simulator real road routes
+- **SendGrid Account** or SMTP server - For email verification
 
 ## 🚀 Installation
 
@@ -179,7 +229,6 @@ cd Vehicle-Tracker
    cd api-gateway && npm install && cd ..
    cd user && npm install && cd ..
    cd publisher && npm install && cd ..
-   cd consumer && npm install && cd ..
    ```
 
    **Or use the automated setup script:**
@@ -192,15 +241,7 @@ cd Vehicle-Tracker
 
 3. **Set up environment variables**
 
-   Create `config.env` files in each service directory:
-
-   ```bash
-   # Copy and edit config.env for each service
-   cp api-gateway/config.env.example api-gateway/config.env
-   cp user/config.env.example user/config.env
-   cp publisher/config.env.example publisher/config.env
-   cp consumer/config.env.example consumer/config.env
-   ```
+   Create `.env` files in each service directory (see [Configuration](#-configuration) section).
 
 4. **Start required infrastructure services**
 
@@ -232,19 +273,15 @@ cd Vehicle-Tracker
    ```bash
    # Terminal 1 - User Service (Port 3000)
    cd user
-   npm run start-dev  # or npm start for production
+   npm run start:dev  # or npm start for production
 
    # Terminal 2 - Publisher Service (Port 3001)
    cd publisher
-   npm run start-dev  # or npm start for production
+   npm run start:dev  # or npm start for production
 
-   # Terminal 3 - Consumer Service (Port 3002)
-   cd consumer
-   npm run start-dev  # or npm start for production
-
-   # Terminal 4 - API Gateway (Port 5000)
+   # Terminal 3 - API Gateway (Port 5000)
    cd api-gateway
-   npm run start-dev  # or npm start for production
+   npm run start:dev  # or npm start for production
    ```
 
 ### Option 2: Docker Deployment (Recommended)
@@ -258,14 +295,7 @@ cd Vehicle-Tracker
 
 2. **Set up environment variables**
 
-   Create `config.env` files for each service:
-
-   ```bash
-   # Edit config.env files for each service with your configuration
-   nano publisher/config.env
-   nano consumer/config.env
-   nano user/config.env
-   ```
+   Create `.env` files for each service (see [Configuration](#-configuration) section).
 
 3. **Start all services with Docker Compose**
 
@@ -284,7 +314,6 @@ cd Vehicle-Tracker
    - RabbitMQ with health checks
    - User Service (waits for Redis and MongoDB to be healthy)
    - Publisher Service (waits for RabbitMQ to be healthy)
-   - Consumer Service (waits for RabbitMQ, and Redis to be healthy)
    - API Gateway (waits for all backend services to be ready)
 
 4. **View logs**
@@ -295,8 +324,8 @@ cd Vehicle-Tracker
 
    # View logs for specific services
    docker-compose logs -f user-service
-   docker-compose logs -f consumer-service
    docker-compose logs -f publisher-service
+   docker-compose logs -f apigateway-service
    docker-compose logs -f rabbitmq
    ```
 
@@ -312,9 +341,9 @@ cd Vehicle-Tracker
 
 ## ⚙ Configuration
 
-Each microservice requires its own `config.env` file. Create the following configuration files:
+Each microservice requires its own `.env` file. Create the following configuration files:
 
-### API Gateway (`api-gateway/config.env`)
+### API Gateway (`api-gateway/.env`)
 
 ```env
 # Server Configuration
@@ -324,10 +353,12 @@ PORT=5000
 # Backend Service URLs (use service names for Docker, localhost for local)
 USER_SERVICE_URL=http://user-service:3000
 PUBLISHER_SERVICE_URL=http://publisher-service:3001
-CONSUMER_SERVICE_URL=http://consumer-service:3002
+
+# JWT Secret (must match User Service)
+JWT_SECRET=your-super-secret-jwt-key
 ```
 
-### Publisher Service (`publisher/config.env`)
+### Publisher Service (`publisher/.env`)
 
 ```env
 # Server Configuration
@@ -338,24 +369,7 @@ PORT=3001
 RABBITMQ_URL=amqp://rabbitmq:5672
 ```
 
-### Consumer Service (`consumer/config.env`)
-
-```env
-# Server Configuration
-NODE_ENV=development
-PORT=3002
-
-# Database (use service name for Docker, localhost for local)
-DATABASE=mongodb://mongo:27017/consumer
-
-# Redis (use service name for Docker, localhost for local)
-REDIS_URL=redis://redis:6379
-
-# RabbitMQ (use service name for Docker, localhost for local)
-RABBITMQ_URL=amqp://rabbitmq:5672
-```
-
-### User Service (`user/config.env`)
+### User Service (`user/.env`)
 
 ```env
 # Server Configuration
@@ -363,7 +377,7 @@ NODE_ENV=development
 PORT=3000
 
 # Database (use service name for Docker, localhost for local)
-DATABASE=mongodb://mongo:27017/user
+DATABASE=mongodb://mongo:27017/vehicletracker
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
@@ -372,15 +386,29 @@ JWT_EXPIRES_IN=30d
 # Redis (use service name for Docker, localhost for local)
 REDIS_URL=redis://redis:6379
 
-# SendGrid Email
+# RabbitMQ (use service name for Docker, localhost for local)
+RABBITMQ_URL=amqp://rabbitmq:5672
+
+# Cloudinary (for media uploads)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Email Configuration (Nodemailer)
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@example.com
+EMAIL_PASSWORD=your-email-password
+
+# SendGrid (alternative email service)
 SENDGRID_API_KEY=your-sendgrid-api-key
 EMAIL_FROM=yoursendgridemail@example.com
 
 # Base URL for email links
-BASE_URL=http://localhost:5000
+BASE_URL=http://localhost:5000/
 ```
 
-**Note for Local Development**: Replace Docker service names (`mongo`, `redis`, `rabbitmq`, `user-service`, `publisher-service`, `consumer-service`) with `localhost` when running services outside of Docker.
+**Note for Local Development**: Replace Docker service names (`mongo`, `redis`, `rabbitmq`, `user-service`, `publisher-service`) with `localhost` when running services outside of Docker.
 
 ## 💻 Usage
 
@@ -411,11 +439,14 @@ bash startApp.sh
 Each microservice runs on its own port:
 
 - **API Gateway**: `http://localhost:5000` - Single entry point for all client requests
-- **User Service**: `http://localhost:3000` - Authentication, vehicles, devices, geofencing
+- **User Service**: `http://localhost:3000` - Authentication, devices, geofencing, chat/messaging
 - **Publisher Service**: `http://localhost:3001` - Receives GPS data from IoT devices
-- **Consumer Service**: `http://localhost:3002` - Processes data from RabbitMQ
 
 **Access Points**:
+
+- **Chat App UI**: `http://localhost:5000/` - Built-in chat application interface
+- **Live Tracking Page**: `http://localhost:5000/live-tracking.html` - Real-time tracking demo
+- **Password Reset Page**: `http://localhost:5000/reset-password.html` - Password reset interface
 
 ### Testing Real-time Tracking
 
@@ -423,7 +454,7 @@ Each microservice runs on its own port:
 
 The easiest way to test the system is using the built-in GPS data simulator:
 
-````bash
+```bash
 # Make sure all services are running first
 
 # For Docker:
@@ -434,33 +465,33 @@ bash startApp.sh
 
 # Then run the GPS simulator in a new terminal:
 node publisher/src/simulateGPS.js
-```publisher && npm start
-
-# Terminal 3: Consumer Service
-cd consumer && npm start
-
-# Terminal 4: API Gateway
-cd api-gateway && npm start
-
-# Terminal 5: Run the GPS simulator
-node publisher/simulateGPS.js
-````
+```
 
 The simulator will:
 
-- Generate realistic GPS data for multiple devices
+- Fetch real road routes from OpenRouteService API
+- Generate realistic GPS data with traffic simulation
+- Support smooth acceleration/deceleration
 - Send data to your API automatically
 - Show live updates in the console
-- Loop through predefined routes continuously
+- Stop automatically when vehicles reach their destinations
 
 For detailed configuration options, see [GPS Simulator Documentation](docs/GPS_SIMULATOR.md).
 
 #### Option 2: Manual Testing
 
-1. Open `live-tracking.html` in a browser
-2. Connect to the Socket.io server
+1. Open `http://localhost:5000/live-tracking.html` in a browser
+2. Connect to the Socket.IO server with authentication
 3. Send GPS coordinates via the `/api/track` endpoint
 4. Watch real-time updates on the map
+
+### Testing Chat Features
+
+1. Open `http://localhost:5000/` in a browser
+2. Register a new account or login
+3. Start private or group conversations
+4. Send text messages or media files
+5. View real-time message delivery and read receipts
 
 ### API Testing
 
@@ -474,16 +505,19 @@ The project includes a built-in GPS data simulator for testing without physical 
 
 ```bash
 # Start the simulator with default settings
-node ./publisher/simulateGPS.js
+node ./publisher/src/simulateGPS.js
 ```
 
-### Quick Start
+### Features
 
-````bash
-# Start the simulator with default settings
-node ./publisher/src/simulateGPS.js
-``` Automatic looping through waypoints
-- ✅ Speed variations for realism (±7.5 km/h)
+- ✅ Real road routes using OpenRouteService API
+- ✅ Fallback to interpolated routes if API unavailable
+- ✅ Realistic traffic simulation (stops, idling)
+- ✅ Smooth acceleration and deceleration
+- ✅ Speed variations for realism (±3 km/h)
+- ✅ Vehicle rotation/bearing calculation
+- ✅ Multiple vehicle support
+- ✅ Auto-completion when destination reached
 - ✅ Customizable update intervals
 
 ### Configuration
@@ -493,17 +527,17 @@ Edit `publisher/src/simulateGPS.js` to customize:
 ```javascript
 const DEVICES = [
   {
-    deviceId: "693daaf2a7cd544e618be7f1",
+    deviceId: "your-device-id-here",
     start: { lat: 30.036953, lng: 31.205739 },
     end: { lat: 30.057834, lng: 31.217332 },
     status: "Moving",
-    speed: 80, // km/h
+    speed: 80, // Maximum speed in km/h
   },
-  // Add more devices...
+  // Add more devices for multi-vehicle simulation
 ];
 
-const UPDATE_INTERVAL = 3000; // milliseconds
-````
+const UPDATE_INTERVAL = 300; // milliseconds
+```
 
 ### Use Cases
 
@@ -538,17 +572,19 @@ The documentation includes:
 
 ```http
 POST http://localhost:5000/api/user/register
-Content-Type: application/json
+Content-Type: multipart/form-data
 
 {
   "name": "John Doe",
   "email": "john@example.com",
+  "phoneNumber": "+1234567890",
   "password": "securePassword123",
-  "passwordConfirm": "securePassword123"
+  "passwordConfirm": "securePassword123",
+  "profilePicture": <file> (optional)
 }
 ```
 
-**Note**: Registration only accepts `name`, `email`, `password`, and `passwordConfirm` fields. Other fields are filtered out for security. New users are created with `role: 'user'` and `active: true` by default. Only administrators can assign admin roles to users.
+**Note**: Registration accepts `name`, `email`, `phoneNumber`, `password`, `passwordConfirm`, and optional `profilePicture`. Phone numbers are validated using libphonenumber-js. New users are created with `role: 'user'` and `active: true` by default.
 
 #### Verify Email
 
@@ -568,6 +604,19 @@ Content-Type: application/json
 }
 ```
 
+#### Update User Profile
+
+```http
+PATCH http://localhost:5000/api/user/update-user
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+{
+  "name": "Updated Name",
+  "profilePicture": <file> (optional)
+}
+```
+
 ### Devices
 
 #### Get All Devices
@@ -582,7 +631,7 @@ Authorization: Bearer <token>
 ```http
 POST http://localhost:5000/api/user/device
 Authorization: Bearer <token>
-Content-Type: application/json
+Content-Type: multipart/form-data
 
 {
   "brand": "Toyota",
@@ -590,11 +639,19 @@ Content-Type: application/json
   "year": 2025,
   "plateNumber": "ABC-1234",
   "type": "Car",
-  "status": "Idling"
+  "status": "Idling",
+  "image": <file> (optional)
 }
 ```
 
 **Note**: Device types include: `Motorcycle`, `Car`, or `Truck`. Status can be: `Parking`, `Moving`, `Idling`, or `Towed`.
+
+#### Get Device History
+
+```http
+GET http://localhost:5000/api/user/device/:deviceId/history?startDate=2025-11-01&endDate=2025-11-30
+Authorization: Bearer <token>
+```
 
 ### Tracking
 
@@ -605,37 +662,50 @@ POST http://localhost:5000/api/track
 Content-Type: application/json
 
 {
-  "deviceId": "device123",
+  "deviceId": "device-object-id",
   "lat": 30.0444,
   "lng": 31.2357,
   "speed": 60,
+  "status": "Moving",
+  "rotation": 45,
   "timestamp": "2025-11-23T10:30:00Z"
 }
 ```
 
-**Note:** Tracking requests are routed through API Gateway to Publisher Service.
+**Note:** Tracking requests are routed through API Gateway to Publisher Service, then processed via RabbitMQ.
 
 ### Live Tracking
 
 #### Get Live Location
 
 ```http
-GET http://localhost:5000/api/user/live/:plateNumber
-Authorization: Bearer <token>
-```
-
-### Historical Data
-
-#### Get Device History
-
-```http
-GET http://localhost:5000/api/device/:deviceId/history?startDate=2025-11-01&endDate=2025-11-30
+GET http://localhost:5000/api/user/live/:deviceId
 Authorization: Bearer <token>
 ```
 
 ### Geofencing
 
-#### Create Geofence
+#### Create Geofence (Circle)
+
+```http
+POST http://localhost:5000/api/user/geofence
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Office Area",
+  "type": "Circle",
+  "geofence": {
+    "type": "Point",
+    "coordinates": [31.2357, 30.0444],
+    "radius": 500
+  },
+  "color": "#FF5733",
+  "devices": ["deviceId123"]
+}
+```
+
+#### Create Geofence (Polygon)
 
 ```http
 POST http://localhost:5000/api/user/geofence
@@ -644,12 +714,30 @@ Content-Type: application/json
 
 {
   "name": "Downtown Area",
-  "coordinates": [
-    { "lat": 30.0444, "lng": 31.2357 },
-    { "lat": 30.0500, "lng": 31.2400 },
-    { "lat": 30.0450, "lng": 31.2450 }
-  ],
+  "type": "Polygon",
+  "geofence": {
+    "type": "Polygon",
+    "coordinates": [[
+      [31.2357, 30.0444],
+      [31.2400, 30.0500],
+      [31.2450, 30.0450],
+      [31.2357, 30.0444]
+    ]]
+  },
   "devices": ["deviceId123"]
+}
+```
+
+#### Check Point in Geofence
+
+```http
+POST http://localhost:5000/api/user/geofence/check-point
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "lat": 30.0444,
+  "lng": 31.2357
 }
 ```
 
@@ -659,6 +747,128 @@ Content-Type: application/json
 GET http://localhost:5000/api/user/geofence
 Authorization: Bearer <token>
 ```
+
+### Chat & Messaging
+
+#### Create Private Chat
+
+```http
+POST http://localhost:5000/api/chat/private-chat
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "receiverId": "user-object-id",
+  "chatType": "Private"
+}
+```
+
+#### Create Group Chat
+
+```http
+POST http://localhost:5000/api/chat/group-chat
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "userIds": ["userId1", "userId2"],
+  "chatType": "Group",
+  "groupName": "Team Chat"
+}
+```
+
+#### Get All Chats
+
+```http
+GET http://localhost:5000/api/chat
+Authorization: Bearer <token>
+```
+
+#### Send Text Message
+
+```http
+POST http://localhost:5000/api/chat/message
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "chatId": "chat-object-id",
+  "text": "Hello, world!",
+  "messageType": "text"
+}
+```
+
+#### Send Media Message
+
+```http
+POST http://localhost:5000/api/chat/message/media
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+{
+  "chatId": "chat-object-id",
+  "file": <file>
+}
+```
+
+**Supported media types**: `image`, `video`, `audio`, `file`
+
+#### Get Messages
+
+```http
+GET http://localhost:5000/api/chat/message/:chatId
+Authorization: Bearer <token>
+```
+
+#### Edit Message
+
+```http
+PATCH http://localhost:5000/api/chat/message/:messageId
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "text": "Updated message text"
+}
+```
+
+#### Delete Message
+
+```http
+DELETE http://localhost:5000/api/chat/message/:messageId
+Authorization: Bearer <token>
+```
+
+### WebSocket Events
+
+Connect to Socket.IO at `http://localhost:5000` with authentication token:
+
+```javascript
+const socket = io("http://localhost:5000", {
+  auth: { token: "your-jwt-token" },
+});
+```
+
+#### Events to Listen
+
+| Event                 | Description                     | Payload                                           |
+| --------------------- | ------------------------------- | ------------------------------------------------- |
+| `new-message`         | New message received            | `{ chatId, message }`                             |
+| `lastMessage-updated` | Chat's last message updated     | `{ chatId, lastMessage }`                         |
+| `message-edited`      | Message was edited              | `{ messageId, chatId, text, editedAt }`           |
+| `message-deleted`     | Message was deleted             | `{ messageId, chatId }`                           |
+| `messages-read`       | Messages marked as read         | `{ chatId, readerId, count, seenAt }`             |
+| `user-status-changed` | User online/offline status      | `{ userId, status }`                              |
+| `gps-update`          | Real-time GPS location update   | `{ deviceId, lat, lng, speed, status, rotation }` |
+| `joined-chat`         | Successfully joined a chat room | `{ chatId, success }`                             |
+| `error`               | Error occurred                  | `{ message }`                                     |
+
+#### Events to Emit
+
+| Event        | Description       | Payload  |
+| ------------ | ----------------- | -------- |
+| `join-chat`  | Join a chat room  | `chatId` |
+| `leave-chat` | Leave a chat room | `chatId` |
 
 ## 🗄️ Data Models
 
@@ -679,28 +889,45 @@ The system uses MongoDB with Mongoose for data persistence. Below are the main d
 │  Geofence   │         │   Record    │
 │             │         │             │
 └─────────────┘         └─────────────┘
+
+┌─────────────┐         ┌─────────────┐
+│    User     │────────>│    Chat     │
+│             │ N:M     │             │
+└─────────────┘         └──────┬──────┘
+                               │
+                               │ 1:N
+                               │
+                               ▼
+                        ┌─────────────┐
+                        │   Message   │
+                        │             │
+                        └─────────────┘
 ```
 
 ### User Model
 
-**Database**: `user` (User Service)
 **Collection**: `users`
 
 Stores user account information with authentication and authorization.
 
-| Field                    | Type    | Description                                                             |
-| ------------------------ | ------- | ----------------------------------------------------------------------- |
-| `name`                   | String  | User's full name (required, trimmed)                                    |
-| `email`                  | String  | Unique email address (required, lowercase)                              |
-| `password`               | String  | Hashed password (bcrypt, min 8 chars)                                   |
-| `role`                   | String  | User role: `user` or `admin` (default: `user`, admin-only modification) |
-| `active`                 | Boolean | Account status (default: `true`, becomes `false` when user deactivates) |
-| `isVerified`             | Boolean | Email verification status (default: `false`)                            |
-| `passwordChangedAt`      | Date    | Timestamp of last password change                                       |
-| `passwordResetToken`     | String  | Hashed token for password reset                                         |
-| `passwordResetExpires`   | Date    | Password reset token expiration                                         |
-| `emailVerificationToken` | String  | Hashed token for email verification                                     |
-| `emailTokenExpires`      | Date    | Email verification token expiration                                     |
+| Field                    | Type    | Description                                                 |
+| ------------------------ | ------- | ----------------------------------------------------------- |
+| `name`                   | String  | User's full name (required, trimmed)                        |
+| `email`                  | String  | Unique email address (required, lowercase)                  |
+| `phoneNumber`            | String  | Unique phone number (required, validated)                   |
+| `password`               | String  | Hashed password (bcrypt, min 8 chars)                       |
+| `role`                   | String  | User role: `user` or `admin` (default: `user`)              |
+| `active`                 | Boolean | Account status (default: `true`)                            |
+| `status`                 | String  | Online presence: `Online` or `Offline` (default: `Offline`) |
+| `profilePicture`         | String  | Cloudinary URL for profile image                            |
+| `isVerified`             | Boolean | Email verification status (default: `false`)                |
+| `passwordChangedAt`      | Date    | Timestamp of last password change                           |
+| `passwordResetToken`     | String  | Hashed token for password reset                             |
+| `passwordResetExpires`   | Date    | Password reset token expiration                             |
+| `emailVerificationToken` | String  | Hashed token for email verification                         |
+| `emailTokenExpires`      | Date    | Email verification token expiration                         |
+
+**Indexes**: `name`, `role`
 
 **Methods**:
 
@@ -709,96 +936,115 @@ Stores user account information with authentication and authorization.
 - `generateResetToken()` - Create password reset token
 - `generateVerificationToken()` - Create email verification token
 
-**Security Notes**:
-
-- Registration filters request body to only accept: `name`, `email`, `password`, `passwordConfirm`
-- `role` field can only be modified by administrators
-- `active` is `true` by default on registration and becomes `false` when user deactivates their account
-
-**Relationships**:
-
-- One user can have many devices
-- One user can have many geofences
-
 ### Device Model
 
-**Database**: `vehicletracker` (User Service)
 **Collection**: `devices`
 
-Represents physical vehicles/devices being tracked. Combines vehicle and GPS device information.
+Represents physical vehicles/devices being tracked.
 
 | Field         | Type     | Description                                                                    |
-| ------------- | -------- | ------------------------------------------------------------------------------ | --- |
+| ------------- | -------- | ------------------------------------------------------------------------------ |
 | `brand`       | String   | Vehicle manufacturer (required)                                                |
 | `model`       | String   | Vehicle model name (required)                                                  |
 | `year`        | Number   | Manufacturing year (required)                                                  |
 | `plateNumber` | String   | Unique license plate (required, indexed, unique)                               |
 | `type`        | String   | Vehicle type: `Motorcycle`, `Car`, or `Truck` (required)                       |
-| `status`      | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` (default: `Parking`) |     |
+| `image`       | String   | Cloudinary URL for device image                                                |
+| `status`      | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` (default: `Parking`) |
 | `user`        | ObjectId | Reference to User (required)                                                   |
-| `lastRecord`  | ObjectId | Reference to Record                                                            |
-
-**Relationships**:
-
-- Belongs to one User
-- Has many GPS Records
+| `lastRecord`  | ObjectId | Reference to most recent Record                                                |
 
 ### Geofence Model
 
-**Database**: `vehicletracker` (User Service)
 **Collection**: `geofences`
 
 Defines geographic boundaries for alerts and monitoring.
 
-| Field       | Type       | Description                                 |
-| ----------- | ---------- | ------------------------------------------- |
-| `name`      | String     | Geofence name (required)                    |
-| `type`      | String     | Geofence type: `Circle` or `Polygon`        |
-| `geofence`  | GeoJSON    | Geographic data (Point/Polygon with coords) |
-| `radius`    | Number     | Radius in meters (for Circle type)          |
-| `color`     | String     | Display color for UI                        |
-| `active`    | Boolean    | Geofence active status (default: `true`)    |
-| `user`      | ObjectId   | Reference to User (required)                |
-| `devices`   | ObjectId[] | Array of Device references                  |
-| `createdAt` | Date       | Creation timestamp (auto)                   |
-| `updatedAt` | Date       | Last update timestamp (auto)                |
+| Field       | Type       | Description                                      |
+| ----------- | ---------- | ------------------------------------------------ |
+| `name`      | String     | Geofence name (required)                         |
+| `type`      | String     | Geofence type: `Circle` or `Polygon` (required)  |
+| `geofence`  | GeoJSON    | Geographic data (Point/Polygon with coordinates) |
+| `color`     | String     | Display color for UI                             |
+| `active`    | Boolean    | Geofence active status (default: `true`)         |
+| `user`      | ObjectId   | Reference to User (required)                     |
+| `devices`   | ObjectId[] | Array of Device references                       |
+| `createdAt` | Date       | Creation timestamp (auto)                        |
+| `updatedAt` | Date       | Last update timestamp (auto)                     |
 
-**Indexes**:
-
-- `2dsphere` index on `geofence` for geospatial queries
-
-**Relationships**:
-
-- Belongs to one User
-- Can monitor multiple Devices
+**Indexes**: `2dsphere` index on `geofence` for geospatial queries
 
 ### Record Model
 
-**Database**: `vehicletracker` (User Service)
 **Collection**: `records`
 
 Stores historical GPS tracking data.
 
-| Field       | Type     | Description                                               |
-| ----------- | -------- | --------------------------------------------------------- |
-| `deviceId`  | ObjectId | Reference to Device (required)                            |
-| `lat`       | Number   | Latitude (-90 to 90, required)                            |
-| `lng`       | Number   | Longitude (-180 to 180, required)                         |
-| `speed`     | Number   | Speed in km/h (required)                                  |
-| `status`    | String   | Current status: `Parking`, `Moving`, `Idling`, or `Towed` |
-| `timestamp` | Date     | Record timestamp (default: now)                           |
+| Field       | Type     | Description                                       |
+| ----------- | -------- | ------------------------------------------------- |
+| `deviceId`  | ObjectId | Reference to Device (required)                    |
+| `lat`       | Number   | Latitude (-90 to 90, required)                    |
+| `lng`       | Number   | Longitude (-180 to 180, required)                 |
+| `speed`     | Number   | Speed in km/h (required)                          |
+| `status`    | String   | Status: `Parking`, `Moving`, `Idling`, or `Towed` |
+| `rotation`  | Number   | Bearing/heading in degrees (0 to 360)             |
+| `timestamp` | Date     | Record timestamp (default: now)                   |
 
-**Relationships**:
+### Chat Model
 
-- Belongs to one Device
+**Collection**: `chats`
+
+Represents conversations between users.
+
+| Field         | Type       | Description                               |
+| ------------- | ---------- | ----------------------------------------- |
+| `userIds`     | ObjectId[] | Array of User references (participants)   |
+| `chatType`    | String     | Chat type: `Private` or `Group`           |
+| `lastMessage` | ObjectId   | Reference to most recent Message          |
+| `groupAdmin`  | ObjectId   | Reference to User (admin for group chats) |
+| `groupName`   | String     | Group name (for group chats)              |
+| `createdAt`   | Date       | Creation timestamp (auto)                 |
+| `updatedAt`   | Date       | Last update timestamp (auto)              |
+
+**Indexes**: `userIds` + `chatType` compound index
+
+### Message Model
+
+**Collection**: `messages`
+
+Stores chat messages with media support.
+
+| Field           | Type     | Description                                                          |
+| --------------- | -------- | -------------------------------------------------------------------- |
+| `senderId`      | ObjectId | Reference to sending User (required)                                 |
+| `receiverId`    | ObjectId | Reference to receiving User                                          |
+| `chatId`        | ObjectId | Reference to Chat (required)                                         |
+| `text`          | String   | Message text content                                                 |
+| `mediaUrl`      | String   | Cloudinary URL for media file                                        |
+| `fileName`      | String   | Original filename                                                    |
+| `messageType`   | String   | Type: `text`, `image`, `video`, `file`, or `audio` (default: `text`) |
+| `fileSize`      | Number   | File size in bytes                                                   |
+| `mimeType`      | String   | MIME type of the file                                                |
+| `fileExtension` | String   | File extension                                                       |
+| `seen`          | Boolean  | Read status (default: `false`)                                       |
+| `seenAt`        | Date     | Timestamp when message was read                                      |
+| `isEdited`      | Boolean  | Edit status (default: `false`)                                       |
+| `editedAt`      | Date     | Timestamp when message was edited                                    |
+| `createdAt`     | Date     | Creation timestamp (auto)                                            |
+
+**Indexes**:
+
+- `chatId` + `seen` + `senderId` compound index
+- `chatId` + `createdAt` (descending) for pagination
 
 ### Data Flow
 
-1. **User Registration**: Creates `User` document in user database
-2. **Device Creation**: User creates `Device` (vehicle with GPS tracking capabilities), assigned to their account
+1. **User Registration**: Creates `User` document with email verification
+2. **Device Creation**: User creates `Device` with optional image upload to Cloudinary
 3. **Geofence Configuration**: User creates `Geofence` for specific `Devices`
-4. **GPS Tracking**: Device sends data → Publisher validates → RabbitMQ → Consumer stores as `Record`
-5. **Live Updates**: Consumer publishes to Redis → User Service streams via WebSocket
+4. **GPS Tracking**: Device sends data → Publisher validates → RabbitMQ → User Service consumes and stores as `Record`
+5. **Live Updates**: User Service emits GPS updates via Socket.IO
+6. **Chat Flow**: Users create `Chat` → Send `Message` → Real-time delivery via Socket.IO
 
 ## 📁 Project Structure
 
@@ -807,102 +1053,112 @@ Vehicle-Tracker/
 ├── api-gateway/                # API Gateway (Port 5000)
 │   ├── src/
 │   │   ├── controllers/       # Request forwarding logic
-│   │   │   ├── userController.js
-│   │   │   └── publisherController.js
+│   │   │   ├── userController.js      # User/Device/Geofence proxy
+│   │   │   ├── chatController.js      # Chat/Message proxy
+│   │   │   └── publisherController.js # GPS tracking proxy
 │   │   ├── middlewares/
-│   │   │   ├── authenticate.js     # Authentication Middleware
-│   │   │   └── errorController.js  # Error handling
-│   │   ├── routes/            # Route definitions
-│   │   │   ├── userRoutes.js
-│   │   │   └── publisherRoutes.js
-│   │   └── util/              # Utility functions
-│   ├── app.js                 # Express app configuration
-│   ├── server.js              # API Gateway entry point
-│   ├── package.json           # API Gateway dependencies
-│   ├── config.env             # API Gateway configuration
-│   └── Dockerfile             # API Gateway container image
+│   │   │   ├── authenticate.js        # JWT verification
+│   │   │   └── errorController.js     # Error handling
+│   │   ├── routes/
+│   │   │   ├── userRoutes.js          # User, device, geofence routes
+│   │   │   ├── chatRoutes.js          # Chat and message routes
+│   │   │   └── publisherRoutes.js     # GPS tracking routes
+│   │   ├── util/
+│   │   │   └── appError.js
+│   │   ├── app.js             # Express app with WebSocket proxy
+│   │   └── server.js          # Gateway entry point
+│   ├── public/                # Static frontend files
+│   │   ├── index.html         # Chat App UI
+│   │   ├── live-tracking.html # Live tracking demo
+│   │   ├── reset-password.html
+│   │   ├── main.js            # Frontend JavaScript
+│   │   └── styles.css
+│   ├── package.json
+│   ├── .env
+│   └── Dockerfile
 │
 ├── user/                       # User Microservice (Port 3000)
 │   ├── src/
-│   │   ├── controllers/       # Request handlers
-│   │   │   ├── authController.js
-│   │   │   ├── deviceController.js
-│   │   │   ├── geofenceController.js
-│   │   │   ├── liveController.js
-│   │   │   ├── recordController.js
-│   │   │   └── userController.js
-│   │   ├── models/            # Mongoose database models (MongoDB schemas)
-│   │   │   ├── deviceModel.js      # Vehicle/GPS device model (combined)
-│   │   │   ├── geofenceModel.js    # Geographic boundary model with 2dsphere index
-│   │   │   ├── recordModel.js      # GPS tracking record model (historical data)
-│   │   │   └── userModel.js        # User auth model with bcrypt & JWT methods
-│   │   ├── routes/            # API routes
-│   │   │   ├── deviceRoutes.js
-│   │   │   ├── geofenceRoutes.js
-│   │   │   ├── liveRoutes.js
-│   │   │   └── userRoutes.js
-│   │   ├── services/          # Business logic
-│   │   │   ├── redisCache.js        # Redis caching
-│   │   │   ├── redisChannelSubscribe.js  # Redis pub/sub
-│   │   │   └── websocket.js         # WebSocket handling
-│   │   ├── middlewares/       # Middleware functions
-│   │   │   ├── authenticate.js      # JWT authentication
-│   │   │   ├── authorize.js         # Role-based authorization
-│   │   │   ├── validateGeofence     # Geofence Validation Middleware
-│   │   │   ├── cleanCache.js        # Cache invalidation
-│   │   │   └── errorController.js   # Error handling
-│   │   └── util/              # Utility functions
-│   ├── app.js                 # Express app configuration
-│   ├── server.js              # User service entry point
-│   ├── live-tracking.html     # Live tracking demo page
-│   ├── package.json           # User service dependencies
-│   ├── config.env             # User service configuration
-│   └── Dockerfile             # User service container image
+│   │   ├── controllers/
+│   │   │   ├── authController.js      # Auth: register, login, verify, reset
+│   │   │   ├── userController.js      # User profile management
+│   │   │   ├── deviceController.js    # Device CRUD operations
+│   │   │   ├── geofenceController.js  # Geofence management
+│   │   │   ├── chatController.js      # Chat creation and management
+│   │   │   ├── messagesController.js  # Message CRUD operations
+│   │   │   ├── liveController.js      # Live tracking endpoints
+│   │   │   └── recordController.js    # Historical data queries
+│   │   ├── models/
+│   │   │   ├── userModel.js           # User schema with auth methods
+│   │   │   ├── deviceModel.js         # Device/vehicle schema
+│   │   │   ├── geofenceModel.js       # Geofence with 2dsphere index
+│   │   │   ├── recordModel.js         # GPS record schema
+│   │   │   ├── chatModel.js           # Chat schema (private/group)
+│   │   │   └── messageModel.js        # Message schema with media
+│   │   ├── routes/
+│   │   │   ├── userRoutes.js          # Auth and user routes
+│   │   │   ├── deviceRoutes.js        # Device CRUD routes
+│   │   │   ├── geofenceRoutes.js      # Geofence routes
+│   │   │   ├── chatRoutes.js          # Chat management routes
+│   │   │   ├── messageRoutes.js       # Message routes
+│   │   │   └── liveRoutes.js          # Live tracking routes
+│   │   ├── services/
+│   │   │   ├── socket.js              # Socket.IO with Redis adapter
+│   │   │   ├── consumeRabbitMQ.js     # RabbitMQ consumer for GPS
+│   │   │   ├── redisCache.js          # Redis caching service
+│   │   │   ├── redisChannelSubscribe.js
+│   │   │   ├── uploadController.js    # Cloudinary upload service
+│   │   │   └── email.js               # Email service (Nodemailer)
+│   │   ├── middlewares/
+│   │   │   ├── authenticate.js        # JWT authentication
+│   │   │   ├── authorize.js           # Role-based authorization
+│   │   │   ├── validateGeofence.js    # Geofence validation
+│   │   │   ├── chatValidator.js       # Chat input validation
+│   │   │   ├── messageValidator.js    # Message validation (Zod)
+│   │   │   ├── validateMessages.js    # Message validation middleware
+│   │   │   ├── cleanCache.js          # Cache invalidation
+│   │   │   └── errorController.js
+│   │   ├── util/
+│   │   │   ├── appError.js
+│   │   │   ├── catchAsync.js
+│   │   │   ├── filterObj.js
+│   │   │   ├── apiFeatures.js
+│   │   │   └── generateEmailTemplate.js
+│   │   ├── app.js
+│   │   ├── server.js
+│   │   └── logging.js         # Pino logger configuration
+│   ├── package.json
+│   ├── .env
+│   └── Dockerfile
 │
 ├── publisher/                  # Publisher Microservice (Port 3001)
 │   ├── src/
-│   │   ├── controllers/       # Track data handlers
-│   │   │   └── trackController.js
-│   │   ├── middlewares/       # Validation middleware
-│   │   │   └── validateRecord.js
-│   │   ├── routes/           # Publisher routes
-│   │   │   └── trackRoutes.js
-│   │   ├── services/         # RabbitMQ publisher
-│   │   │   └── publishToRabbitMQ.js
-│   │   ├── util/             # Utility functions
-│   │   │   └── appError.js
-│   │   ├── app.js            # Express app configuration
-│   │   ├── server.js         # Publisher entry point
-│   │   └── simulateGPS.js    # GPS data simulator
-│   ├── package.json          # Publisher dependencies
-│   ├── config.env            # Publisher configuration
-│   └── Dockerfile            # Publisher container image
-│
-├── consumer/                   # Consumer Microservice (Port 3002)
-│   ├── src/
+│   │   ├── controllers/
+│   │   │   └── trackController.js     # GPS data handler
 │   │   ├── middlewares/
-│   │   │   └── errorController.js  # Error handling
-│   │   ├── services/         # RabbitMQ consumer, Redis pub
-│   │   │   ├── consumeRabbitMQ.js
-│   │   │   └── redisChannelPublish.js
-│   │   └── util/             # Utility functions
-│   │       ├── apiFeatures.js
-│   │       ├── appError.js
-│   │       ├── catchAsync.js
-│   │       ├── email.js
-│   │       └── filterObj.js
-│   ├── app.js                # Express app configuration
-│   ├── server.js             # Consumer entry point
-│   ├── package.json          # Consumer dependencies
-│   ├── config.env            # Consumer configuration
+│   │   │   ├── validateRecord.js      # Joi validation
+│   │   │   └── errorController.js
+│   │   ├── routes/
+│   │   │   └── trackRoutes.js
+│   │   ├── services/
+│   │   │   └── publishToRabbitMQ.js   # RabbitMQ publisher
+│   │   ├── util/
+│   │   │   └── appError.js
+│   │   ├── app.js
+│   │   ├── server.js
+│   │   └── simulateGPS.js     # GPS data simulator
+│   ├── package.json
+│   ├── .env
+│   └── Dockerfile
 │
 ├── docs/
 │   └── GPS_SIMULATOR.md       # GPS simulator documentation
-├── docker-compose.yml         # Docker Compose configuration for all services
-├── setupApp.sh                # Script to install all dependencies
-├── startApp.sh                # Script to start all services with one command
-├── docker-compose.yml         # Docker Compose configuration for all services
-└── README.md                  # Project README Documentation
+│
+├── docker-compose.yml         # Docker Compose configuration
+├── setupApp.sh                # Install all dependencies
+├── startApp.sh                # Start all services
+├── formatAll.sh               # Format all code (Prettier)
+└── README.md
 ```
 
 ## 🤝 Contributing
@@ -918,10 +1174,24 @@ Contributions are welcome! Please follow these steps:
 ### Development Guidelines
 
 - Follow the existing code style
+- Run `bash formatAll.sh` to format code with Prettier before committing
 - Write meaningful commit messages
 - Add tests for new features
 - Update documentation as needed
 - Ensure all tests pass before submitting PR
+
+### Code Quality Tools
+
+```bash
+# Format all code
+bash formatAll.sh
+
+# Lint individual service
+cd user && npm run lint
+
+# Fix lint issues
+cd user && npm run lint:fix
+```
 
 ## 👤 Author
 

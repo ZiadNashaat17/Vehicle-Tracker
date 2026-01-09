@@ -125,49 +125,52 @@ redis-server
 rabbitmq-server
 ```
 
-**2. Start the Publisher Service**
+**2. Start All Services**
 
-The simulator sends data to the publisher service on port 5000:
-
-```bash
-cd publisher
-npm install
-npm start
-```
-
-**3. Start Consumer and User Services**
-
-For full tracking functionality:
+The simulator sends data through the API Gateway (port 5000) to the Publisher Service:
 
 ```bash
-# Terminal 1 - Consumer service
-cd consumer
-npm start
+# Option A: Use the startup script (recommended)
+bash startApp.sh
 
-# Terminal 2 - User service (for live tracking)
+# Option B: Start services manually
+# Terminal 1 - User Service (Port 3000)
 cd user
 npm start
+
+# Terminal 2 - Publisher Service (Port 3001)
+cd publisher
+npm start
+
+# Terminal 3 - API Gateway (Port 5000)
+cd api-gateway
+npm start
 ```
 
-**4. Create Device Records**
+**Note:** The User Service consumes GPS data from RabbitMQ and handles real-time WebSocket updates.
 
-The simulator requires device IDs that exist in MongoDB. Create devices via the API:
+**3. Create Device Records**
+
+The simulator requires device IDs that exist in MongoDB. Create devices via the API Gateway:
 
 ```bash
-POST http://localhost:7000/api/devices
+POST http://localhost:5000/api/user/device
 Authorization: Bearer YOUR_JWT_TOKEN
 Content-Type: application/json
 
 {
-  "name": "Test Vehicle 1",
-  "deviceId": "693daaf2a7cd544e618be7f1",
-  "imei": "123456789012345"
+  "brand": "Toyota",
+  "model": "Camry",
+  "year": 2025,
+  "plateNumber": "ABC-1234",
+  "type": "Car",
+  "status": "Parking"
 }
 ```
 
-Note the `deviceId` from the response and use it in the `DEVICES` array.
+Note the `_id` from the response and use it as the `deviceId` in the `DEVICES` array.
 
-**5. OpenRouteService API Key** (Optional but Recommended)
+**4. OpenRouteService API Key** (Optional but Recommended)
 
 For real route generation:
 
@@ -270,15 +273,21 @@ For real route generation:
 
 ### 1. Testing Real-time WebSocket Updates
 
-1. Open `live-tracking.html` in a browser
-2. Run the simulator
-3. Watch vehicles move in real-time on the map
+1. Open `http://localhost:5000/live-tracking.html` in a browser
+2. Login with valid credentials
+3. Run the simulator
+4. Watch vehicles move in real-time on the map
 
 ### 2. Testing Historical Routes
 
 1. Run simulator for a few minutes
 2. Stop the simulator
-3. Query the history endpoint to see the recorded route
+3. Query the history endpoint to see the recorded route:
+
+```bash
+GET http://localhost:5000/api/user/device/:deviceId/history
+Authorization: Bearer YOUR_JWT_TOKEN
+```
 
 ### 3. Load Testing
 
@@ -402,37 +411,43 @@ const API_URL = "http://localhost:5000/api/track";
 
 **Solution:**
 
-1. Create the device via User Service API:
+1. Create the device via API Gateway:
 
 ```bash
-POST http://localhost:7000/api/devices
+POST http://localhost:5000/api/user/device
 Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
 
 {
-  "name": "Test Vehicle",
-  "deviceId": "693daaf2a7cd544e618be7f1",
-  "imei": "123456789012345"
+  "brand": "Toyota",
+  "model": "Camry",
+  "year": 2025,
+  "plateNumber": "TEST-001",
+  "type": "Car"
 }
 ```
 
-2. Use the returned `_id` or `deviceId` in the `DEVICES` array
+2. Use the returned `_id` as `deviceId` in the `DEVICES` array
 
 3. Verify device exists:
 
 ```bash
-GET http://localhost:7000/api/devices
+GET http://localhost:5000/api/user/device
+Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 ### Data not appearing in live tracking
 
-- **Solution:**
-  1. Check if WebSocket is connected in `live-tracking.html`
-  2. Verify Redis is running
-  3. Check consumer service is processing messages
+**Solution:**
+
+1. Check if WebSocket is connected in `live-tracking.html`
+2. Verify Redis is running: `docker ps | grep redis`
+3. Check User Service is running and consuming from RabbitMQ
+4. Verify you're authenticated with a valid JWT token
 
 ### No data in database
 
-**Cause:** Consumer service not processing messages
+**Cause:** User Service not consuming messages from RabbitMQ
 
 **Solution:**
 
@@ -443,10 +458,10 @@ docker ps | grep rabbitmq
 # Or visit: http://localhost:15672 (guest/guest)
 ```
 
-2. **Start Consumer Service:**
+2. **Check User Service is running:**
 
 ```bash
-cd consumer
+cd user
 npm start
 ```
 
@@ -458,11 +473,12 @@ docker ps | grep mongo
 
 # Verify data in MongoDB:
 mongosh
-use vehicleTracker
+use vehicletracker
 db.records.find().limit(5)
 ```
 
 4. **Check Publisher logs** for successful message publishing
+5. **Check User Service logs** for RabbitMQ consumption messages
 
 ## 📝 Data Format
 
@@ -475,16 +491,18 @@ The simulator sends data in this format:
   "lng": 31.205739,                        // Longitude (6 decimal places)
   "speed": 62.45,                          // Speed in km/h (2 decimal places)
   "status": "Moving",                      // Status: "Moving", "Idling", or "Parking"
-  "timestamp": "2025-12-15T10:30:00.000Z" // ISO 8601 format
+  "rotation": 45.5,                        // Bearing/heading in degrees (0-360)
+  "timestamp": "2025-12-15T10:30:00.000Z"  // ISO 8601 format
 }
 ```
 
 **Field Descriptions:**
 
-- `deviceId`: Must match an existing device in MongoDB
+- `deviceId`: Must match an existing device `_id` in MongoDB
 - `lat`, `lng`: GPS coordinates (WGS84 format)
 - `speed`: Current speed in kilometers per hour
 - `status`: Current vehicle state
+- `rotation`: Vehicle heading/bearing in degrees (0 = North, 90 = East, etc.)
 - `timestamp`: UTC timestamp of the GPS reading
 
 This data is sent to: `POST http://localhost:5000/api/track`
@@ -493,20 +511,31 @@ This data is sent to: `POST http://localhost:5000/api/track`
 
 - `publisher/src/simulateGPS.js` - Main GPS simulator script
 - `publisher/src/controllers/trackController.js` - Receives GPS data
-- `publisher/src/middlewares/validateRecord.js` - Validates GPS data
-- `publisher/src/services/publishToRabbitMQ.js` - Publishes to message queue
-- `consumer/src/services/consumeRabbitMQ.js` - Consumes GPS messages
-- `consumer/src/models/recordModel.js` - MongoDB record schema
-- `user/public/live-tracking.html` - Real-time tracking visualization
+- `publisher/src/middlewares/validateRecord.js` - Validates GPS data (Joi)
+- `publisher/src/services/publishToRabbitMQ.js` - Publishes to RabbitMQ
+- `user/src/services/consumeRabbitMQ.js` - Consumes GPS messages from queue
+- `user/src/models/recordModel.js` - MongoDB record schema
+- `user/src/models/deviceModel.js` - Device/vehicle schema
+- `api-gateway/public/live-tracking.html` - Real-time tracking visualization
 - `user/src/services/socket.js` - WebSocket server for live updates
 
 ## 🌐 API Endpoints
 
-- `POST http://localhost:5000/api/track` - Submit GPS data (Publisher)
-- `GET http://localhost:7000/api/devices` - List devices (User Service)
-- `POST http://localhost:7000/api/devices` - Create device (User Service)
-- `GET http://localhost:7000/api/live/:deviceId` - Live tracking (User Service)
-- `GET http://localhost:6000/api/records` - Query historical records (Consumer)
+All requests go through the API Gateway at `http://localhost:5000`:
+
+| Endpoint                             | Method | Description                           |
+| ------------------------------------ | ------ | ------------------------------------- |
+| `/api/track`                         | POST   | Submit GPS data (routed to Publisher) |
+| `/api/user/device`                   | GET    | List all devices                      |
+| `/api/user/device`                   | POST   | Create new device                     |
+| `/api/user/device/:deviceId`         | GET    | Get device details                    |
+| `/api/user/device/:deviceId/history` | GET    | Get device GPS history                |
+| `/api/user/live/:deviceId`           | GET    | Get live location                     |
+
+**Direct Service Access (Development only):**
+
+- Publisher Service: `http://localhost:3001`
+- User Service: `http://localhost:3000`
 
 ## 🔑 OpenRouteService API
 

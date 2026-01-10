@@ -3,7 +3,6 @@ import { Router } from "express";
 import * as authController from "../controllers/authController.js";
 import * as userController from "../controllers/userController.js";
 import authenticate from "../middlewares/authenticate.js";
-import { authorizeAdmin } from "../middlewares/authorize.js";
 import { resizeUserImage, uploadMedia } from "../services/uploadController.js";
 
 const router = Router();

@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 
-export default async (req, _res, next) => {
+export default async (req, res, next) => {
   try {
     let token;
 

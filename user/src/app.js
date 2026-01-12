@@ -43,7 +43,7 @@ app.use("/api/live", liveRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/message", messageRouter);
 
-app.use((req, _res, next) => {
+app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

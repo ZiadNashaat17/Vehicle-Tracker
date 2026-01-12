@@ -8,7 +8,7 @@ import globalErrorHandler from "./middlewares/errorController.js";
 import trackRouter from "./routes/trackRoutes.js";
 import AppError from "./util/appError.js";
 
-config({ path: "./config.env" });
+config({ path: "./.env" });
 
 const app = express();
 const limit = rateLimit({

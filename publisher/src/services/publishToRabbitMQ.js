@@ -1,5 +1,7 @@
 import amqp from "amqplib";
 
+import { LOGGER } from "../logging.js";
+
 let channel;
 let connection;
 
@@ -11,9 +13,9 @@ export const connectRabbitMQ = async () => {
 
     await channel.assertQueue("vehicle-tracking", { durable: true });
 
-    console.log("Connected to RabbitMQ");
+    LOGGER.info("Connected to RabbitMQ");
   } catch (error) {
-    console.error("RabbitMQ connection error: ", error);
+    LOGGER.error("RabbitMQ connection error: ", error);
 
     throw error;
   }
@@ -29,9 +31,9 @@ export const publishRecord = async record => {
 
     channel.sendToQueue("vehicle-tracking", Buffer.from(message), { persistent: true });
 
-    console.log("Record published to queue: ", message);
+    LOGGER.info("Record published to queue: ", message);
   } catch (error) {
-    console.error("Error publishing to RabbitMQ: ", error);
+    LOGGER.error("Error publishing to RabbitMQ: ", error);
 
     throw error;
   }
@@ -41,14 +43,14 @@ export const closeRabbitMQ = async () => {
   try {
     if (channel) {
       await channel.close();
-      console.log("RabbitMQ channel closed");
+      LOGGER.info("RabbitMQ channel closed");
     }
     if (connection) {
       await connection.close();
-      console.log("RabbitMQ connection closed");
+      LOGGER.info("RabbitMQ connection closed");
     }
   } catch (error) {
-    console.error("Error closing RabbitMQ:", error);
+    LOGGER.error("Error closing RabbitMQ:", error);
     throw error;
   }
 };

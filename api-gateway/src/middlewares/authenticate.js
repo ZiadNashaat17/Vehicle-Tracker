@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { LOGGER } from "../logging.js";
 import AppError from "../util/appError.js";
 
 export default async (req, _res, next) => {
@@ -20,7 +21,7 @@ export default async (req, _res, next) => {
       return next(new AppError("User is not authenticated!", 401));
     }
 
-    console.log("User is authenticated");
+    LOGGER.info("User is authenticated");
 
     next();
   } catch (error) {

@@ -12,7 +12,7 @@ import publisherRouter from "./routes/publisherRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
 
-config({ path: "./config.env" });
+config({ path: "./.env" });
 
 const app = express();
 const limit = rateLimit({
@@ -40,6 +40,10 @@ app.use(helmet());
 if (process.env.NODE_ENV?.trim() === "development") {
   app.use(morgan("dev"));
 }
+
+app.get("/health", (req, res) => {
+  res.send("System is working");
+});
 
 app.use("/api/track", publisherRouter);
 app.use("/api/user", userRouter);

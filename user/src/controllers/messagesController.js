@@ -187,7 +187,7 @@ export const editMessage = async (req, res, next) => {
 
   const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
   if (message.createdAt < fifteenMinutesAgo) {
-    return next(new AppError("Cannot edit messages older than 15 minutes"));
+    return next(new AppError("Cannot edit messages older than 15 minutes", 400));
   }
 
   message.text = newMessage;

@@ -1,3 +1,4 @@
+import { LOGGER } from "../logging.js";
 import AppError from "../util/appError.js";
 
 const handleCastErrorDB = err => {
@@ -23,7 +24,7 @@ const handleJWTExpiredError = () =>
   new AppError("Your token has expired. Please try logging in again!!", 401);
 
 const sendErrorDev = (err, res) => {
-  console.log(err);
+  LOGGER.error(err);
 
   res.status(err.statusCode).json({
     status: err.status,
@@ -35,14 +36,15 @@ const sendErrorDev = (err, res) => {
 
 const sendErrorProd = (err, res) => {
   // isOperational is a property to distinguish between operational errors (expected errors) and code bugs
+
+  LOGGER.error(err);
+
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
     });
   } else {
-    console.error("Error!!!!!!", err);
-
     res.status(500).json({
       status: "error",
       message: "Something went very wrong!",

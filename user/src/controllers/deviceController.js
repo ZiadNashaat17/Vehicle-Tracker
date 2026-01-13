@@ -3,7 +3,8 @@ import Device from "../models/deviceModel.js";
 import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
-export const createDevice = async (req, res, _next) => {
+// eslint-disable-next-line no-unused-vars
+export const createDevice = async (req, res, next) => {
   if (req.user.role !== "admin") {
     req.body = { ...req.body, user: req.user._id };
   }
@@ -35,7 +36,8 @@ export const getDevice = async (req, res, next) => {
   });
 };
 
-export const getAllDevices = async (req, res, _next) => {
+// eslint-disable-next-line no-unused-vars
+export const getAllDevices = async (req, res, next) => {
   const status = req.query.status;
   const query = { user: req.user._id };
   if (status) {

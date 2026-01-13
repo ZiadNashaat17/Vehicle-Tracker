@@ -199,7 +199,8 @@ export const updateUser = async (req, res, next) => {
   });
 };
 
-export const deactivateUser = async (req, res, _next) => {
+// eslint-disable-next-line no-unused-vars
+export const deactivateUser = async (req, res, next) => {
   await User.findOneAndUpdate({ _id: req.user._id, isVerified: true }, { active: false });
 
   res.status(201).json({

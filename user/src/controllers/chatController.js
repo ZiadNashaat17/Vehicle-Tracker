@@ -3,6 +3,7 @@ import Message from "../models/messageModel.js";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 
+// eslint-disable-next-line no-unused-vars
 export const createPrivateChat = async (req, res, next) => {
   const senderId = req.user._id;
   const { receiverId, chatType } = req.body;
@@ -32,6 +33,7 @@ export const createPrivateChat = async (req, res, next) => {
   });
 };
 
+// eslint-disable-next-line no-unused-vars
 export const createGroupChat = async (req, res, next) => {
   const { userIds, chatType, groupName } = req.body;
 
@@ -131,6 +133,7 @@ export const removeUserFromGroup = async (req, res, next) => {
   });
 };
 
+// eslint-disable-next-line no-unused-vars
 export const getAllChats = async (req, res, next) => {
   const { name } = req.query;
   const userId = req.user._id;

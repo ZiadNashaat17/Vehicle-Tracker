@@ -62,6 +62,7 @@ class DeviceSimulator {
 
   async getRealRouteCoordinates(start, end) {
     try {
+      const authKey = process.env.OPEN_ROUTE_KEY;
       const response = await axios.get(
         `https://api.openrouteservice.org/v2/directions/driving-car`,
         {
@@ -69,10 +70,7 @@ class DeviceSimulator {
             start: `${start.lng},${start.lat}`,
             end: `${end.lng},${end.lat}`,
           },
-          headers: {
-            Authorization:
-              "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA5MzQ3MTBkMjRjOTQzMGRhMDdlNWUyNjMyMmNmZjkxIiwiaCI6Im11cm11cjY0In0=", // Replace with your key
-          },
+          headers: { Authorization: authKey },
         }
       );
 
